@@ -465,7 +465,12 @@ function App(){
       try{
         const doc=buildPDF(record);
         // Scarica PDF localmente
-        doc.save(`Preventivo_${num}.pdf`);
+        const pdfBlob=doc.output("blob");
+        const pdfUrl=URL.createObjectURL(pdfBlob);
+        const pdfA=document.createElement("a");
+        pdfA.href=pdfUrl; pdfA.download=`Preventivo_${num}.pdf`;
+        document.body.appendChild(pdfA); pdfA.click(); document.body.removeChild(pdfA);
+        setTimeout(()=>URL.revokeObjectURL(pdfUrl),5000);
         // Carica su Drive se connesso
         if(driveToken){
           const pdfBytes=doc.output("arraybuffer");
