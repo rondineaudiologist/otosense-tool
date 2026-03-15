@@ -684,10 +684,10 @@ function App(){
     a.href=url; a.download=`Preventivo_${num}.html`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(url),5000);
-    // Se Drive connesso: genera PDF da HTML e carica su Drive
-    if(driveToken && window.html2canvas && window.jspdf){
+    // Se Drive connesso: genera PDF con jsPDF e carica su Drive
+    if(driveToken && window.jspdf){
       try{
-        const doc=await buildPDFFromHTML(record);
+        const doc=buildPDF(record);
         const pdfBytes=doc.output("arraybuffer");
         const meta={name:`Preventivo_${num}.pdf`,parents:[DRIVE_FOLDER_ID],mimeType:"application/pdf"};
         const form=new FormData();
