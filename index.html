@@ -181,11 +181,11 @@ function buildPDF(record){
   return doc;
 }
 
-async function uploadToDrive(token, name, content, mime){
-  const meta={name, parents:[DRIVE_FOLDER_ID], mimeType:mime};
+async function uploadToDrive(token, name, content){
+  const meta={name, parents:[DRIVE_FOLDER_ID], mimeType:"application/pdf"};
   const form=new FormData();
   form.append("metadata",new Blob([JSON.stringify(meta)],{type:"application/json"}));
-  form.append("file",new Blob([content],{type:mime}));
+  form.append("file",new Blob([content],{type:"application/pdf"}));
   const r=await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
     method:"POST", headers:{Authorization:`Bearer ${token}`}, body:form
   });
