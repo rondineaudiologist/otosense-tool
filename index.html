@@ -6,6 +6,7 @@
 <title>Otosense Srl — Sistema Studio</title>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -179,6 +180,43 @@ function buildPDF(record){
   doc.text(`Otosense Srl · Preventivo ${numero} · ${data} · ${apNome} · Listino 2026 · Valido 30 giorni`,W/2,y,{align:"center"});
 
   return doc;
+}
+
+async function buildPDFFromHTML(record){
+  return new Promise((resolve, reject)=>{
+    // Crea iframe nascosto con l'HTML del preventivo
+    const html=buildPrintHTML(record);
+    const iframe=document.createElement("iframe");
+    iframe.style.cssText="position:fixed;top:-9999px;left:-9999px;width:794px;height:1123px;border:none;visibility:hidden;";
+    document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(html);
+    iframe.contentDocument.close();
+    // Aspetta che le risorse si carichino
+    setTimeout(async()=>{
+      try{
+        const canvas=await html2canvas(iframe.contentDocument.body,{
+          scale:2,
+          useCORS:true,
+          allowTaint:true,
+          backgroundColor:"#ffffff",
+          width:794,
+          height:1123,
+          windowWidth:794,
+          windowHeight:1123,
+        });
+        const{jsPDF}=window.jspdf;
+        const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+        const imgData=canvas.toDataURL("image/jpeg",0.95);
+        doc.addImage(imgData,"JPEG",0,0,210,297);
+        document.body.removeChild(iframe);
+        resolve(doc);
+      } catch(e){
+        document.body.removeChild(iframe);
+        reject(e);
+      }
+    },1000);
+  });
 }
 
 async function uploadToDrive(token, name, content){
@@ -646,10 +684,10 @@ function App(){
     a.href=url; a.download=`Preventivo_${num}.html`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(url),5000);
-    // Se Drive connesso: carica solo PDF
-    if(driveToken && window.jspdf){
+    // Se Drive connesso: genera PDF da HTML e carica su Drive
+    if(driveToken && window.html2canvas && window.jspdf){
       try{
-        const doc=buildPDF(record);
+        const doc=await buildPDFFromHTML(record);
         const pdfBytes=doc.output("arraybuffer");
         const meta={name:`Preventivo_${num}.pdf`,parents:[DRIVE_FOLDER_ID],mimeType:"application/pdf"};
         const form=new FormData();
