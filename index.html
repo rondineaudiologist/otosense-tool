@@ -676,27 +676,24 @@ function App(){
     const record={numero:num,data:oggi,audioprotesista:ap,paziente,livello,famiglia,uso,scontoApplicato:scontoPromo,prezzoBase,accessoriSel,totaleFinale,risposte,livelloObj,famigliaObj};
     if(!salvato){salvaPreventivo(record);setSalvato(true);}
     // Scarica HTML stampabile
-    // Scarica HTML localmente (offline)
-    const html=buildPrintHTML(record);
-    const blob=new Blob([html],{type:"text/html;charset=utf-8"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url; a.download=`Preventivo_${num}.html`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),5000);
-    // Drive: solo PDF
-    if(driveToken && window.jspdf){
+    // Genera PDF
+    if(window.jspdf){
       try{
         const doc=buildPDF(record);
-        const pdfBytes=doc.output("arraybuffer");
-        const meta={name:`Preventivo_${num}.pdf`,parents:[DRIVE_FOLDER_ID],mimeType:"application/pdf"};
-        const form=new FormData();
-        form.append("metadata",new Blob([JSON.stringify(meta)],{type:"application/json"}));
-        form.append("file",new Blob([pdfBytes],{type:"application/pdf"}));
-        await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
-          method:"POST",headers:{Authorization:`Bearer ${driveToken}`},body:form
-        });
-      }catch(e){console.error("Drive PDF error",e);}
+        // Scarica PDF localmente
+        doc.save(`Preventivo_${num}.pdf`);
+        // Carica PDF su Drive se connesso
+        if(driveToken){
+          const pdfBytes=doc.output("arraybuffer");
+          const meta={name:`Preventivo_${num}.pdf`,parents:[DRIVE_FOLDER_ID],mimeType:"application/pdf"};
+          const form=new FormData();
+          form.append("metadata",new Blob([JSON.stringify(meta)],{type:"application/json"}));
+          form.append("file",new Blob([pdfBytes],{type:"application/pdf"}));
+          await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
+            method:"POST",headers:{Authorization:`Bearer ${driveToken}`},body:form
+          });
+        }
+      }catch(e){console.error("PDF error",e);}
     }
     // Salva JSON + HTML su Drive
     if(driveToken){
