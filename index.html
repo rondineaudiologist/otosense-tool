@@ -3,35 +3,23 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Otosense Srl — Sistema Studio</title>
+<title>Otosense Srl</title>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:#f0f4f8;}
-::-webkit-scrollbar{width:6px;}
-::-webkit-scrollbar-track{background:#f0f4f8;}
-::-webkit-scrollbar-thumb{background:#b0cdd6;border-radius:3px;}
-</style>
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}</style>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
-const { useState, useEffect, useRef } = React;
 
-const GOOGLE_CLIENT_ID = "352604843284-jg5ui09ul5gkgcorphcdrjjeq80k9fmt.apps.googleusercontent.com";
-const DRIVE_FOLDER_ID  = "1B8IXPAFma3UjyzBNhvmeZuPUy5u1P0r0";
-const DRIVE_SCOPE      = "https://www.googleapis.com/auth/drive.file";
+<!-- DATI E COSTANTI -->
+<script id="data-layer">
+const GOOGLE_CLIENT_ID="352604843284-jg5ui09ul5gkgcorphcdrjjeq80k9fmt.apps.googleusercontent.com";
+const DRIVE_FOLDER_ID="1B8IXPAFma3UjyzBNhvmeZuPUy5u1P0r0";
+const DRIVE_SCOPE="https://www.googleapis.com/auth/drive.file";
 const BRAND="#0a6e8a",ACCENT="#e8a020",GREEN="#1a9e5e",RED="#c0392b";
-
-const storage={
-  get:(k)=>{try{const v=localStorage.getItem(k);return v?{value:v}:null;}catch(_){return null;}},
-  set:(k,v)=>{try{localStorage.setItem(k,v);return true;}catch(_){return false;}},
-  list:(p)=>{try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(p))ks.push(k);}return{keys:ks};}catch(_){return{keys:[]};}}
-};
 
 const AUDIOPROTESISTI=[
   {id:"AP1",nome:"Alessandro Rondine",iniziali:"AR",colore:"#0a6e8a"},
@@ -40,47 +28,47 @@ const AUDIOPROTESISTI=[
 ];
 
 const DOMANDE=[
-  {id:"env",categoria:"🌍 Ambienti di vita",testo:"In quali ambienti trascorre la maggior parte della sua giornata?",opzioni:[
+  {id:"env",cat:"Ambienti di vita",testo:"In quali ambienti trascorre la maggior parte della sua giornata?",opzioni:[
     {label:"Principalmente a casa, ambienti tranquilli e silenziosi",score:1},
-    {label:"Casa con qualche uscita in luoghi semplici (negozi, passeggiate)",score:2},
+    {label:"Casa con qualche uscita in luoghi semplici",score:2},
     {label:"Ambienti quotidiani prevedibili: ufficio, auto, supermercato",score:3},
-    {label:"Ambienti variati con rumore regolare: ristoranti, riunioni, mezzi pubblici",score:4},
-    {label:"Ambienti complessi e molto rumorosi: eventi, locali, sale conferenze",score:5},
+    {label:"Ambienti variati con rumore regolare: ristoranti, riunioni",score:4},
+    {label:"Ambienti complessi e molto rumorosi: eventi, locali",score:5},
   ]},
-  {id:"rumore",categoria:"🔊 Frequenza del rumore",testo:"Con quale frequenza si trova in situazioni con rumore di fondo significativo?",opzioni:[
-    {label:"Raramente — la mia vita è prevalentemente silenziosa",score:1},
+  {id:"rumore",cat:"Frequenza del rumore",testo:"Con quale frequenza si trova in situazioni con rumore di fondo?",opzioni:[
+    {label:"Raramente, la mia vita e' prevalentemente silenziosa",score:1},
     {label:"Qualche volta al mese",score:2},
     {label:"Alcune volte a settimana",score:3},
     {label:"Quasi ogni giorno",score:4},
-    {label:"Ogni giorno, è parte centrale della mia routine",score:5},
+    {label:"Ogni giorno, e' parte centrale della mia routine",score:5},
   ]},
-  {id:"social",categoria:"👥 Vita sociale",testo:"Come descriverebbe la sua vita sociale e le sue interazioni quotidiane?",opzioni:[
-    {label:"Molto limitata, sto spesso da solo/a o con una persona",score:1},
+  {id:"social",cat:"Vita sociale",testo:"Come descriverebbe la sua vita sociale?",opzioni:[
+    {label:"Molto limitata, sto spesso da solo/a",score:1},
     {label:"Qualche uscita con familiari o amici stretti",score:2},
     {label:"Vita sociale moderata: cene, uscite, gruppi piccoli",score:3},
-    {label:"Vita sociale attiva: eventi, teatro, viaggi, gruppi numerosi",score:4},
-    {label:"Molto intensa: lavoro con il pubblico, impegni sociali quotidiani",score:5},
+    {label:"Vita sociale attiva: eventi, teatro, viaggi",score:4},
+    {label:"Molto intensa, lavoro con il pubblico quotidianamente",score:5},
   ]},
-  {id:"ascolto",categoria:"🗣️ Ascolto complesso",testo:"Quanto è importante per lei capire bene anche in situazioni difficili?",opzioni:[
-    {label:"Non mi capita quasi mai, non è una priorità",score:1},
-    {label:"Occasionalmente mi serve, ma non è fondamentale",score:2},
+  {id:"ascolto",cat:"Ascolto complesso",testo:"Quanto e' importante capire bene in situazioni difficili?",opzioni:[
+    {label:"Non mi capita quasi mai, non e' una priorita'",score:1},
+    {label:"Occasionalmente mi serve, ma non e' fondamentale",score:2},
     {label:"Mi serve abbastanza spesso, vorrei migliorare",score:3},
-    {label:"È importante, ho spesso difficoltà in queste situazioni",score:4},
-    {label:"È essenziale per la mia vita quotidiana e/o professionale",score:5},
+    {label:"E' importante, ho spesso difficolta' in queste situazioni",score:4},
+    {label:"E' essenziale per la mia vita quotidiana",score:5},
   ]},
-  {id:"aspettativa",categoria:"🎯 Aspettative tecnologiche",testo:"Cosa si aspetta dal suo apparecchio acustico in termini di tecnologia?",opzioni:[
+  {id:"aspettativa",cat:"Aspettative tecnologiche",testo:"Cosa si aspetta dal suo apparecchio acustico?",opzioni:[
     {label:"Sentire meglio in modo semplice, senza troppe funzioni",score:1},
-    {label:"Buon ascolto quotidiano con qualche comodità in più",score:2},
-    {label:"Tecnologia equilibrata, app sul telefono, adattamento automatico",score:3},
-    {label:"Alta qualità, Bluetooth avanzato, controllo preciso, streaming",score:4},
-    {label:"Il massimo disponibile: AI, personalizzazione totale, ecosistema digitale",score:5},
+    {label:"Buon ascolto quotidiano con qualche comodita'",score:2},
+    {label:"Tecnologia equilibrata, app sul telefono",score:3},
+    {label:"Alta qualita', Bluetooth avanzato, streaming",score:4},
+    {label:"Il massimo disponibile: AI, personalizzazione totale",score:5},
   ]},
-  {id:"budget",categoria:"💶 Investimento",testo:"Qual è la fascia di investimento che ha in mente per l'apparecchio acustico?",opzioni:[
-    {label:"Fino a € 1.500 per apparecchio",score:1},
-    {label:"Tra € 1.500 e € 3.000 per apparecchio",score:2},
-    {label:"Tra € 3.000 e € 5.000 per apparecchio",score:3},
-    {label:"Tra € 5.000 e € 7.500 per apparecchio",score:4},
-    {label:"Oltre € 7.500 per apparecchio",score:5},
+  {id:"budget",cat:"Investimento",testo:"Qual e' la fascia di investimento che ha in mente?",opzioni:[
+    {label:"Fino a 1.500 euro per apparecchio",score:1},
+    {label:"Tra 1.500 e 3.000 euro per apparecchio",score:2},
+    {label:"Tra 3.000 e 5.000 euro per apparecchio",score:3},
+    {label:"Tra 5.000 e 7.500 euro per apparecchio",score:4},
+    {label:"Oltre 7.500 euro per apparecchio",score:5},
   ]},
 ];
 
@@ -88,81 +76,33 @@ const PESI={env:1.8,rumore:1.9,social:1.4,ascolto:2.0,aspettativa:1.3,budget:1.2
 
 const MOTIVAZIONI={
   BASE:"Profilo con ambienti molto silenziosi e vita sociale minima. Il livello Entry e' ideale per un primo approccio all'amplificazione in contesti semplici.",
-  ESSENZIALE:"Profilo con ambienti semplici, vita sociale limitata e rumore raro. Il livello Essenziale garantisce ascolto confortevole nelle situazioni quotidiane.",
-  STANDARD:"Uso quotidiano in ambienti prevedibili con rumore occasionale. Il livello Standard offre la tecnologia giusta per una vita attiva e confortevole.",
-  AVANZATA:"Vita sociale moderata con rumore regolare e buone aspettative. Il livello Avanzato assicura prestazioni solide anche in gruppi e situazioni variabili.",
-  PREMIUM:"Ambienti complessi, rumore frequente, vita sociale attiva e alte aspettative. Il livello Premium garantisce la massima intelligibilita' in ogni contesto.",
+  ESSENZIALE:"Profilo con ambienti semplici e vita sociale limitata. Il livello Essenziale garantisce un ascolto confortevole nelle situazioni quotidiane.",
+  STANDARD:"Uso quotidiano in ambienti prevedibili. Il livello Standard offre la tecnologia giusta per una vita attiva e confortevole.",
+  AVANZATA:"Vita sociale moderata con rumore regolare. Il livello Avanzato assicura prestazioni solide anche in gruppi e situazioni variabili.",
+  PREMIUM:"Ambienti complessi e vita sociale attiva. Il livello Premium garantisce la massima intelligibilita' in ogni contesto.",
 };
 
-function calcolaLivello(r){
-  let tp=0,ts=0;
-  for(const[id,s]of Object.entries(r)){const p=PESI[id]||1;ts+=s*p;tp+=p;}
-  const m=ts/tp;
-  if(m<=1.4)return"BASE";if(m<=2.0)return"ESSENZIALE";if(m<=3.0)return"STANDARD";if(m<=4.0)return"AVANZATA";return"PREMIUM";
-}
-
 const LIVELLI=[
-  {id:"BASE",label:"ENTRY",sublabel:"Essential Base",num:"1",color:"#7ecde0",light:"#f0fafd",
-   tagline:"La soluzione essenziale per sentire meglio ogni giorno",
-   vantaggi:["Conversazioni chiare","Ambienti tranquilli","Bluetooth base","Semplice da usare"],
-   ambiente:"Casa, TV, conversazioni individuali in silenzio"},
-  {id:"ESSENZIALE",label:"ESSENZIALE",sublabel:"Essential",num:"3",color:"#4db8d4",light:"#e8f7fb",
-   tagline:"Soluzione pratica per conversazioni di tutti i giorni",
-   vantaggi:["Conversazioni facili","Rumore leggero gestito","Semplice e funzionale","Bluetooth streaming"],
-   ambiente:"Casa, conversazioni individuali, ambienti tranquilli"},
-  {id:"STANDARD",label:"STANDARD",sublabel:"Standard",num:"5",color:"#2fa0c0",light:"#ddf3f9",
-   tagline:"Perfetto per l'uso quotidiano — affidabile ogni giorno",
-   vantaggi:["Parlato chiaro nel rumore","Casa lavoro passeggiate","Adattamento automatico","Semplice e affidabile"],
-   ambiente:"Uso quotidiano, ambienti prevedibili, rumore occasionale"},
-  {id:"AVANZATA",label:"AVANZATO",sublabel:"Advanced",num:"7",color:"#1a88a8",light:"#cdeef7",
-   tagline:"Audio avanzato per la vita attiva",
-   vantaggi:["Gruppi e ambienti rumorosi","Parlato chiaro nel rumore","AI separazione parlato","Vita sociale attiva"],
-   ambiente:"Gruppi, ristoranti, riunioni, vita sociale moderata"},
-  {id:"PREMIUM",label:"PREMIUM",sublabel:"Premium",num:"9",color:"#095a78",light:"#aadff0",
-   tagline:"Esperienza sonora massima — conversazioni nitide",
-   vantaggi:["Ambienti complessi","Nitido nel rumore forte","AI adattiva avanzata","Massimo supporto audio"],
-   ambiente:"Ambienti complessi, rumore alto, vita sociale attiva"},
+  {id:"BASE",label:"ENTRY",sublabel:"Essential Base",num:"1",color:"#7ecde0",light:"#f0fafd",tagline:"La soluzione essenziale per sentire meglio ogni giorno",vantaggi:["Conversazioni chiare","Ambienti tranquilli","Bluetooth base","Semplice da usare"],ambiente:"Casa, TV, conversazioni in silenzio"},
+  {id:"ESSENZIALE",label:"ESSENZIALE",sublabel:"Essential",num:"3",color:"#4db8d4",light:"#e8f7fb",tagline:"Soluzione pratica per conversazioni di tutti i giorni",vantaggi:["Conversazioni facili","Rumore leggero gestito","Funzionale","Bluetooth streaming"],ambiente:"Casa, conversazioni individuali"},
+  {id:"STANDARD",label:"STANDARD",sublabel:"Standard",num:"5",color:"#2fa0c0",light:"#ddf3f9",tagline:"Affidabile ogni giorno per l'uso quotidiano",vantaggi:["Parlato chiaro","Casa e lavoro","Adattamento auto","Affidabile"],ambiente:"Uso quotidiano, rumore occasionale"},
+  {id:"AVANZATA",label:"AVANZATO",sublabel:"Advanced",num:"7",color:"#1a88a8",light:"#cdeef7",tagline:"Audio avanzato per la vita attiva",vantaggi:["Gruppi rumorosi","Parlato nel rumore","AI separazione","Vita sociale"],ambiente:"Gruppi, ristoranti, riunioni"},
+  {id:"PREMIUM",label:"PREMIUM",sublabel:"Premium",num:"9",color:"#095a78",light:"#aadff0",tagline:"Esperienza sonora massima",vantaggi:["Ambienti complessi","Nitido nel rumore","AI adattiva","Massimo audio"],ambiente:"Ambienti complessi, vita sociale attiva"},
 ];
 
 const FAMIGLIE=[
-  {id:"moxi_s_r",nome:"MOXI S-R",brand:"Unitron MOXI",tipo:"RIC",sottotipo:"Ricaricabile - Ricevitore nel condotto",icona:"🎧",ricaricabile:true,
-   desc:"RIC mini ricaricabile. Massima discrezione, nessuna pila.",
-   livelli:{BASE:{bino:4600,mono:2300},ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600},PREMIUM:{bino:9800,mono:4900}},
-   accessori:["Charger MOXI Smile","Charger MOXI Smile GO","TV Connector","Remote Control","Partner MIC","Ricevitore"],ricevitore:true},
-  {id:"moxi_s_312",nome:"MOXI S - Pila 312",brand:"Unitron MOXI - Vivante",tipo:"RIC",sottotipo:"Pila 312 - Ricevitore nel condotto",icona:"🎧",ricaricabile:false,
-   desc:"RIC a pila 312. Lunga autonomia e design compatto.",
-   livelli:{BASE:{bino:4300,mono:2150},ESSENZIALE:{bino:4300,mono:2150},STANDARD:{bino:5700,mono:2850},AVANZATA:{bino:6760,mono:3380},PREMIUM:{bino:8460,mono:4230}},
-   accessori:["TV Connector","Remote Control","Partner MIC","Ricevitore"],ricevitore:true},
-  {id:"stride_vpr",nome:"STRIDE V-PR",brand:"Unitron STRIDE",tipo:"BTE",sottotipo:"Ricaricabile - Retroauricolare",icona:"🔋",ricaricabile:true,
-   desc:"BTE ricaricabile. Potenza elevata, Bluetooth completo.",
-   livelli:{BASE:{bino:4600,mono:2300},ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600},PREMIUM:{bino:9800,mono:4900}},
-   accessori:["Charger MOXI V-R/RT","TV Connector","Remote Control","Partner MIC"]},
-  {id:"stride_vm312",nome:"STRIDE V-M 312",brand:"Unitron STRIDE - Vivante",tipo:"BTE",sottotipo:"Pila 312 - Retroauricolare",icona:"🎧",ricaricabile:false,
-   desc:"BTE tradizionale a pila 312. Robusto, affidabile.",
-   livelli:{BASE:{bino:4300,mono:2150},ESSENZIALE:{bino:4300,mono:2150},STANDARD:{bino:5700,mono:2850},AVANZATA:{bino:6760,mono:3380},PREMIUM:{bino:8460,mono:4230}},
-   accessori:["TV Connector","Remote Control","Partner MIC"]},
-  {id:"insera_s_r",nome:"Insera S-R",brand:"Unitron Insera",tipo:"ENDO",sottotipo:"Ricaricabile - Su impronta",icona:"👁️",ricaricabile:true,
-   desc:"Endoauricolare su misura ricaricabile. Invisibile.",note:"Gusci: ITC - Semi-conca.",
-   livelli:{BASE:{bino:4700,mono:2350},ESSENZIALE:{bino:4700,mono:2350},STANDARD:{bino:6200,mono:3100},AVANZATA:{bino:7300,mono:3650},PREMIUM:{bino:9900,mono:4950}},
-   accessori:["Remote Control IIC","TV Connector"]},
-  {id:"insera_s_nw",nome:"Insera S - Pila",brand:"Unitron Insera",tipo:"ENDO",sottotipo:"Pila 10 - Su impronta",icona:"👁️",ricaricabile:false,
-   desc:"Endoauricolare su misura a pila. Dal CIC/IIC alla semiconca.",note:"Gusci: IIC - CIC - Minicanal - ITC - Semiconca.",
-   livelli:{BASE:{bino:4700,mono:2350},ESSENZIALE:{bino:4700,mono:2350},STANDARD:{bino:6200,mono:3100},AVANZATA:{bino:7300,mono:3650},PREMIUM:{bino:9900,mono:4950}},
-   accessori:["Remote Control IIC","TV Connector"]},
-  {id:"quix_r",nome:"Quix - Ricaricabile",brand:"Unitron Quix",tipo:"INSTANT",sottotipo:"Ricaricabile - Senza impronta",icona:"⚡",ricaricabile:true,
-   desc:"Instant Fit ricaricabile, applicazione immediata.",note:"Disponibile Smile 3, 5 e 7.",
-   livelli:{ESSENZIALE:{bino:6100,mono:3050},STANDARD:{bino:7200,mono:3600},AVANZATA:{bino:8300,mono:4150}},
-   accessori:["Charger MOXI Smile","TV Connector","Remote Control IIC"]},
-  {id:"quix_nw",nome:"Quix - Pila",brand:"Unitron Quix",tipo:"INSTANT",sottotipo:"Pila - Senza impronta",icona:"⚡",ricaricabile:false,
-   desc:"Instant Fit a pila, applicazione immediata.",note:"Disponibile Smile 3, 5 e 7.",
-   livelli:{ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600}},
-   accessori:["TV Connector","Remote Control IIC"]},
+  {id:"moxi_s_r",nome:"MOXI S-R",brand:"Unitron MOXI",sottotipo:"Ricaricabile - RIC",icona:"🎧",ricaricabile:true,desc:"RIC mini ricaricabile. Massima discrezione, nessuna pila.",livelli:{BASE:{bino:4600,mono:2300},ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600},PREMIUM:{bino:9800,mono:4900}},accessori:["Charger MOXI Smile","TV Connector","Remote Control","Partner MIC","Ricevitore"],ricevitore:true},
+  {id:"moxi_s_312",nome:"MOXI S Pila 312",brand:"Unitron MOXI Vivante",sottotipo:"Pila 312 - RIC",icona:"🎧",ricaricabile:false,desc:"RIC a pila 312. Lunga autonomia.",livelli:{BASE:{bino:4300,mono:2150},ESSENZIALE:{bino:4300,mono:2150},STANDARD:{bino:5700,mono:2850},AVANZATA:{bino:6760,mono:3380},PREMIUM:{bino:8460,mono:4230}},accessori:["TV Connector","Remote Control","Partner MIC","Ricevitore"],ricevitore:true},
+  {id:"stride_vpr",nome:"STRIDE V-PR",brand:"Unitron STRIDE",sottotipo:"Ricaricabile - BTE",icona:"🔋",ricaricabile:true,desc:"BTE ricaricabile. Potenza elevata.",livelli:{BASE:{bino:4600,mono:2300},ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600},PREMIUM:{bino:9800,mono:4900}},accessori:["TV Connector","Remote Control","Partner MIC"]},
+  {id:"stride_vm312",nome:"STRIDE V-M 312",brand:"Unitron STRIDE Vivante",sottotipo:"Pila 312 - BTE",icona:"🎧",ricaricabile:false,desc:"BTE tradizionale a pila 312.",livelli:{BASE:{bino:4300,mono:2150},ESSENZIALE:{bino:4300,mono:2150},STANDARD:{bino:5700,mono:2850},AVANZATA:{bino:6760,mono:3380},PREMIUM:{bino:8460,mono:4230}},accessori:["TV Connector","Remote Control","Partner MIC"]},
+  {id:"insera_s_r",nome:"Insera S-R",brand:"Unitron Insera",sottotipo:"Ricaricabile - Su impronta",icona:"👁️",ricaricabile:true,desc:"Endoauricolare su misura ricaricabile.",note:"Gusci: ITC - Semi-conca.",livelli:{BASE:{bino:4700,mono:2350},ESSENZIALE:{bino:4700,mono:2350},STANDARD:{bino:6200,mono:3100},AVANZATA:{bino:7300,mono:3650},PREMIUM:{bino:9900,mono:4950}},accessori:["Remote Control IIC","TV Connector"]},
+  {id:"insera_s_nw",nome:"Insera S Pila",brand:"Unitron Insera",sottotipo:"Pila 10 - Su impronta",icona:"👁️",ricaricabile:false,desc:"Endoauricolare su misura a pila.",note:"Gusci: IIC - CIC - ITC - Semiconca.",livelli:{BASE:{bino:4700,mono:2350},ESSENZIALE:{bino:4700,mono:2350},STANDARD:{bino:6200,mono:3100},AVANZATA:{bino:7300,mono:3650},PREMIUM:{bino:9900,mono:4950}},accessori:["Remote Control IIC","TV Connector"]},
+  {id:"quix_r",nome:"Quix Ricaricabile",brand:"Unitron Quix",sottotipo:"Ricaricabile - Instant Fit",icona:"⚡",ricaricabile:true,desc:"Instant Fit ricaricabile, senza impronta.",note:"Smile 3, 5 e 7.",livelli:{ESSENZIALE:{bino:6100,mono:3050},STANDARD:{bino:7200,mono:3600},AVANZATA:{bino:8300,mono:4150}},accessori:["TV Connector","Remote Control IIC"]},
+  {id:"quix_nw",nome:"Quix Pila",brand:"Unitron Quix",sottotipo:"Pila - Instant Fit",icona:"⚡",ricaricabile:false,desc:"Instant Fit a pila, senza impronta.",note:"Smile 3, 5 e 7.",livelli:{ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600}},accessori:["TV Connector","Remote Control IIC"]},
 ];
 
 const ACC={
   "Charger MOXI Smile":{p:null,incluso:true},
-  "Charger MOXI Smile GO":{p:290,incluso:false},
-  "Charger MOXI V-R/RT":{p:190,incluso:false,inclusoPerModello:["stride_vpr"]},
   "TV Connector":{p:190,incluso:false},
   "Remote Control":{p:300,incluso:false},
   "Partner MIC":{p:440,incluso:false},
@@ -172,43 +112,64 @@ const ACC={
 
 const PROMO_MAP={BASE:0,ESSENZIALE:8,STANDARD:10,AVANZATA:15,PREMIUM:20};
 
-function getNextNumero(iniziali){
-  const anno=new Date().getFullYear();
-  const key=`preventivi:contatore:${iniziali}:${anno}`;
-  let n=1;const r=storage.get(key);if(r)n=parseInt(r.value)+1;
-  storage.set(key,String(n));
-  return`${iniziali}-${anno}-${String(n).padStart(3,"0")}`;
+// Storage
+const ST={
+  get:k=>{try{const v=localStorage.getItem(k);return v?{value:v}:null;}catch{return null;}},
+  set:(k,v)=>{try{localStorage.setItem(k,v);}catch{}},
+  list:p=>{try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(p))ks.push(k);}return ks;}catch{return[];}},
+};
+
+function calcolaLivello(r){
+  let tp=0,ts=0;
+  for(const[id,s]of Object.entries(r)){const p=PESI[id]||1;ts+=s*p;tp+=p;}
+  const m=ts/tp;
+  if(m<=1.4)return"BASE";if(m<=2.0)return"ESSENZIALE";if(m<=3.0)return"STANDARD";if(m<=4.0)return"AVANZATA";return"PREMIUM";
 }
-function salvaPreventivo(r){storage.set(`preventivi:archivio:${r.numero}`,JSON.stringify(r));}
+
+function getNumero(ini){
+  const y=new Date().getFullYear(),k=`cnt:${ini}:${y}`;
+  let n=1;const r=ST.get(k);if(r)n=parseInt(r.value)+1;
+  ST.set(k,String(n));
+  return`${ini}-${y}-${String(n).padStart(3,"0")}`;
+}
+
+function salvaPrev(rec){ST.set("prev:"+rec.numero,JSON.stringify(rec));}
+
 function caricaArchivio(){
-  const{keys}=storage.list("preventivi:archivio:");
-  return(keys||[]).map(k=>{try{const r=storage.get(k);return r?JSON.parse(r.value):null;}catch(_){return null;}}).filter(Boolean).sort((a,b)=>b.numero.localeCompare(a.numero));
+  return ST.list("prev:").map(k=>{try{const r=ST.get(k);return r?JSON.parse(r.value):null;}catch{return null;}}).filter(Boolean).sort((a,b)=>b.numero.localeCompare(a.numero));
 }
 
-/* ══ PDF con jsPDF ══ */
-function hexToRgb(hex){
-  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  return[r,g,b];
+function fmt(n){return n.toLocaleString("it-IT",{minimumFractionDigits:2});}
+function hexRgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+
+// Drive upload
+async function driveUpload(token,name,bytes){
+  const meta={name,parents:[DRIVE_FOLDER_ID],mimeType:"application/pdf"};
+  const form=new FormData();
+  form.append("metadata",new Blob([JSON.stringify(meta)],{type:"application/json"}));
+  form.append("file",new Blob([bytes],{type:"application/pdf"}));
+  await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
+    method:"POST",headers:{Authorization:"Bearer "+token},body:form
+  });
 }
 
-function buildPDF(record){
+// Genera PDF
+function buildPDF(rec){
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
-  const{paziente,livelloObj,famigliaObj,uso,scontoApplicato,prezzoBase,accessoriSel,totaleFinale,risposte,audioprotesista,numero,data}=record;
-  const f=n=>n.toLocaleString("it-IT",{minimumFractionDigits:2});
-  const apNome=audioprotesista?audioprotesista.nome:"";
-  const W=210, M=20, CW=W-M*2, PH=297;
-  const lRGB=hexToRgb(livelloObj.color);
+  const{paziente:pz,livelloObj:lv,famigliaObj:fam,uso,scontoApplicato:sc,prezzoBase:pb,accessoriSel:as,totaleFinale:tot,risposte,audioprotesista:ap,numero,data}=rec;
+  const apNome=ap?ap.nome:"";
+  const W=210,M=20,CW=W-M*2,PH=297;
+  const lc=hexRgb(lv.color);
   let y=0;
 
-  /* HEADER */
-  doc.setFillColor(10,110,138);
-  doc.rect(0,0,W,34,"F");
+  // HEADER
+  doc.setFillColor(10,110,138);doc.rect(0,0,W,34,"F");
   doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(180,225,240);
   doc.text("PREVENTIVO - PERCORSO RIABILITATIVO AUDIOLOGICO",M,9);
   doc.setFontSize(19);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
   doc.text("Otosense Srl",M,19);
-  doc.setFontSize(7.5);doc.setFont("helvetica","normal");doc.setTextColor(180,225,240);
+  doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(180,225,240);
   doc.text("Studio di Riabilitazione Audiologica - Dispositivi Unitron / Sonova Group",M,25);
   doc.setFontSize(16);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
   doc.text(numero,W-M,17,{align:"right"});
@@ -217,322 +178,472 @@ function buildPDF(record){
   doc.text(apNome,W-M,29,{align:"right"});
   y=40;
 
-  const sezTitle=(t)=>{
+  const sez=t=>{
     doc.setFontSize(7);doc.setFont("helvetica","bold");doc.setTextColor(10,110,138);
     doc.text(t.toUpperCase(),M,y);
     doc.setDrawColor(180,220,230);doc.setLineWidth(0.35);
-    doc.line(M,y+1.5,W-M,y+1.5);
-    y+=6;
+    doc.line(M,y+1.5,W-M,y+1.5);y+=6;
   };
-
-  const box=(x,bY,w,h,fr,fg,fb,sr,sg,sb)=>{
+  const box=(x,by,w,h,fr,fg,fb,sr,sg,sb)=>{
     if(sr!=null){doc.setDrawColor(sr,sg,sb);doc.setLineWidth(0.4);}
     doc.setFillColor(fr,fg,fb);
-    doc.roundedRect(x,bY,w,h,2,2,sr!=null?"FD":"F");
+    doc.roundedRect(x,by,w,h,2,2,sr!=null?"FD":"F");
   };
 
-  /* ROW 1: PAZIENTE | LIVELLO */
-  const colW=(CW-5)/2;
-  const col1=M, col2=M+colW+5;
-  const hR1=20;
-  sezTitle("Paziente");
-  box(col1,y-2,colW,hR1,240,248,251,200,228,237);
+  // ROW1: PAZIENTE | LIVELLO
+  const cw=(CW-5)/2,c1=M,c2=M+cw+5;
+  sez("Paziente");
+  box(c1,y-2,cw,20,240,248,251,200,228,237);
   doc.setFontSize(13);doc.setFont("helvetica","bold");doc.setTextColor(10,110,138);
-  doc.text(`${paziente.nome} ${paziente.cognome}`,col1+4,y+7);
-  if(paziente.data){doc.setFontSize(8);doc.setFont("helvetica","normal");doc.setTextColor(100,100,100);doc.text("Nato/a il "+new Date(paziente.data).toLocaleDateString("it-IT"),col1+4,y+13);}
-  box(col2,y-2,colW,hR1,...lRGB,null,null,null);
+  doc.text(pz.nome+" "+pz.cognome,c1+4,y+7);
+  if(pz.data){doc.setFontSize(8);doc.setFont("helvetica","normal");doc.setTextColor(100,100,100);doc.text("Nato/a il "+new Date(pz.data).toLocaleDateString("it-IT"),c1+4,y+13);}
+  box(c2,y-2,cw,20,...lc,null,null,null);
   doc.setFontSize(11);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
-  doc.text(`${livelloObj.label} - ${livelloObj.sublabel}`,col2+4,y+7);
-  doc.setFontSize(7.5);doc.setFont("helvetica","italic");doc.setTextColor(225,245,250);
-  doc.text(doc.splitTextToSize(livelloObj.tagline,colW-8),col2+4,y+13);
-  y+=hR1+7;
+  doc.text(lv.label+" - "+lv.sublabel,c2+4,y+7);
+  doc.setFontSize(7);doc.setFont("helvetica","italic");doc.setTextColor(225,245,250);
+  doc.text(doc.splitTextToSize(lv.tagline,cw-8),c2+4,y+13);
+  y+=27;
 
-  /* ROW 2: DISPOSITIVO | PERCORSO */
-  const hR2=26;
-  sezTitle("Dispositivo Selezionato");
-  box(col1,y-2,colW,hR2,248,252,254,200,228,237);
+  // ROW2: DISPOSITIVO | PERCORSO
+  sez("Dispositivo Selezionato");
+  box(c1,y-2,cw,26,248,252,254,200,228,237);
   doc.setFontSize(10);doc.setFont("helvetica","bold");doc.setTextColor(26,26,46);
-  doc.text(famigliaObj.nome,col1+4,y+6);
+  doc.text(fam.nome,c1+4,y+6);
   doc.setFontSize(7.5);doc.setFont("helvetica","normal");doc.setTextColor(100,100,100);
-  doc.text(famigliaObj.brand,col1+4,y+11);
-  doc.text(famigliaObj.sottotipo,col1+4,y+15);
-  doc.setFillColor(10,110,138);doc.roundedRect(col1+4,y+18,uso==="bino"?20:17,5,1,1,"F");
+  doc.text(fam.brand,c1+4,y+11);
+  doc.text(fam.sottotipo,c1+4,y+15);
+  doc.setFillColor(10,110,138);doc.roundedRect(c1+4,y+18,22,5,1,1,"F");
   doc.setFontSize(7);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
-  doc.text(uso==="bino"?"Binaurale":"Monaurale",col1+5.5,y+21.5);
-  box(col2,y-2,colW,hR2,232,247,251,10,110,138);
+  doc.text(uso==="bino"?"Binaurale":"Monaurale",c1+5.5,y+21.5);
+  box(c2,y-2,cw,26,232,247,251,10,110,138);
   doc.setFontSize(8);doc.setFont("helvetica","bold");doc.setTextColor(10,110,138);
-  doc.text("Percorso Riabilitativo Incluso",col2+4,y+5);
+  doc.text("Percorso Riabilitativo Incluso",c2+4,y+5);
   doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(80,80,80);
-  doc.text("15 sedute totali incluse nel prezzo",col2+4,y+9);
-  const cw2=colW/2-5;
-  doc.setFillColor(232,160,32);doc.roundedRect(col2+3,y+11,cw2,12,1,1,"F");
+  doc.text("15 sedute totali incluse nel prezzo",c2+4,y+9);
+  const hw=cw/2-5;
+  doc.setFillColor(232,160,32);doc.roundedRect(c2+3,y+11,hw,12,1,1,"F");
   doc.setFontSize(18);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
-  doc.text("4",col2+7,y+21);
+  doc.text("4",c2+7,y+21);
   doc.setFontSize(6.5);doc.setFont("helvetica","normal");
-  doc.text("Adattamento",col2+13,y+16);doc.text("sessioni 1-4",col2+13,y+20);
-  doc.setFillColor(10,110,138);doc.roundedRect(col2+cw2+6,y+11,cw2,12,1,1,"F");
+  doc.text("Adattamento",c2+13,y+16);doc.text("sessioni 1-4",c2+13,y+20);
+  doc.setFillColor(10,110,138);doc.roundedRect(c2+hw+6,y+11,hw,12,1,1,"F");
   doc.setFontSize(18);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
-  doc.text("11",col2+cw2+8,y+21);
+  doc.text("11",c2+hw+8,y+21);
   doc.setFontSize(6.5);doc.setFont("helvetica","normal");
-  doc.text("Follow-up",col2+cw2+16,y+16);doc.text("sessioni 5-15",col2+cw2+16,y+20);
-  y+=hR2+7;
+  doc.text("Follow-up",c2+hw+16,y+16);doc.text("sessioni 5-15",c2+hw+16,y+20);
+  y+=33;
 
-  /* PROFILO CLINICO */
-  sezTitle("Profilo Clinico - Risposte Paziente");
+  // PROFILO CLINICO
+  sez("Profilo Clinico - Risposte Paziente");
   DOMANDE.forEach((d,i)=>{
     const s=risposte[d.id];if(!s)return;
     const op=d.opzioni.find(x=>x.score===s);
-    if(i%2===0)doc.setFillColor(245,249,251);else doc.setFillColor(255,255,255);
+    doc.setFillColor(i%2===0?245:255,i%2===0?249:255,i%2===0?251:255);
     doc.rect(M,y-3,CW,7,"F");
     doc.setFontSize(7.5);doc.setFont("helvetica","bold");doc.setTextColor(80,80,80);
-    doc.text(d.categoria,M+2,y+1.5);
+    doc.text(d.cat,M+2,y+1.5);
     doc.setFont("helvetica","normal");doc.setTextColor(26,26,46);
-    const lines=doc.splitTextToSize(op?op.label:"",CW*0.58);
-    doc.text(lines[0]||"",W-M-2,y+1.5,{align:"right"});
+    doc.text((op?op.label:"").substring(0,70),W-M-2,y+1.5,{align:"right"});
     y+=7;
   });
   y+=4;
 
-  /* MOTIVAZIONE */
-  sezTitle("Motivazione Clinica");
-  const motTxt=doc.splitTextToSize(MOTIVAZIONI[record.livello]||"",CW-8);
-  const motH=motTxt.length*4.5+8;
-  box(M,y-2,CW,motH,240,248,251,200,228,237);
+  // MOTIVAZIONE
+  sez("Motivazione Clinica");
+  const mt=doc.splitTextToSize(MOTIVAZIONI[rec.livello]||"",CW-8);
+  const mh=mt.length*4.5+8;
+  box(M,y-2,CW,mh,240,248,251,200,228,237);
   doc.setFontSize(8.5);doc.setFont("helvetica","normal");doc.setTextColor(60,60,60);
-  doc.text(motTxt,M+4,y+4);
-  y+=motH+7;
+  doc.text(mt,M+4,y+4);
+  y+=mh+7;
 
-  /* RIEPILOGO ECONOMICO */
-  sezTitle("Riepilogo Economico");
-  const ecoRow=(label,val,lCol,vCol,bold,bg)=>{
+  // RIEPILOGO
+  sez("Riepilogo Economico");
+  const er=(lb,vl,lc2,vc,bold,bg)=>{
     if(bg){doc.setFillColor(...bg);doc.rect(M,y-3,CW,7,"F");}
     doc.setFontSize(9);doc.setFont("helvetica",bold?"bold":"normal");
-    doc.setTextColor(...(lCol||[80,80,80]));doc.text(label,M+2,y+1.5);
-    doc.setTextColor(...(vCol||[26,26,46]));doc.text(val,W-M-2,y+1.5,{align:"right"});
+    doc.setTextColor(...(lc2||[80,80,80]));doc.text(lb,M+2,y+1.5);
+    doc.setTextColor(...(vc||[26,26,46]));doc.text(vl,W-M-2,y+1.5,{align:"right"});
     y+=7;
   };
-  ecoRow("Dispositivi - prezzo di listino","€ "+f(prezzoBase),null,null,false,[250,250,250]);
-  ecoRow(`Promozione prenotazione (-${scontoApplicato}%)`,"- € "+f(prezzoBase*(scontoApplicato/100)),[26,158,94],[26,158,94],true,[240,255,245]);
-  (accessoriSel||[]).filter(n=>ACC[n]&&ACC[n].p).forEach(n=>ecoRow(n,"+ € "+ACC[n].p,null,null,false,[250,250,250]));
-  ecoRow("Percorso riabilitativo completo - 15 sedute","Incluso",[10,110,138],[26,158,94],true,[235,248,252]);
+  er("Dispositivi - prezzo di listino","€ "+fmt(pb),null,null,false,[250,250,250]);
+  er("Promozione prenotazione (-"+sc+"%)","- € "+fmt(pb*(sc/100)),[26,158,94],[26,158,94],true,[240,255,245]);
+  (as||[]).filter(n=>ACC[n]&&ACC[n].p).forEach(n=>er(n,"+ € "+ACC[n].p,null,null,false,[250,250,250]));
+  er("Percorso riabilitativo completo - 15 sedute","Incluso",[10,110,138],[26,158,94],true,[235,248,252]);
   y+=3;
 
-  /* TOTALE */
-  doc.setFillColor(10,110,138);
-  doc.roundedRect(M,y,CW,20,2,2,"F");
+  // TOTALE
+  doc.setFillColor(10,110,138);doc.roundedRect(M,y,CW,20,2,2,"F");
   doc.setFontSize(10);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
   doc.text("TOTALE PERCORSO COMPLETO - IVA inclusa",M+5,y+8);
   doc.setFontSize(7.5);doc.setFont("helvetica","normal");doc.setTextColor(180,225,240);
-  doc.text("Dispositivi + 15 sedute riabilitative - Offerta valida 30 giorni",M+5,y+14);
+  doc.text("Dispositivi + 15 sedute - Valida 30 giorni",M+5,y+14);
   doc.setFontSize(20);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
-  doc.text("€ "+f(totaleFinale),W-M-4,y+14,{align:"right"});
+  doc.text("€ "+fmt(tot),W-M-4,y+14,{align:"right"});
   y+=26;
 
-  /* VANTAGGI */
+  // VANTAGGI
   let bx=M;
-  (livelloObj.vantaggi||[]).forEach(v=>{
+  (lv.vantaggi||[]).forEach(v=>{
     const tw=doc.getTextWidth("+ "+v)+5;
     if(bx+tw>W-M){bx=M;y+=7;}
-    doc.setFillColor(...lRGB);doc.roundedRect(bx,y-3.5,tw,6,1,1,"F");
+    doc.setFillColor(...lc);doc.roundedRect(bx,y-3.5,tw,6,1,1,"F");
     doc.setFontSize(7);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
-    doc.text("+ "+v,bx+2.5,y+1);
-    bx+=tw+2;
+    doc.text("+ "+v,bx+2.5,y+1);bx+=tw+2;
   });
 
-  /* FOOTER FISSO */
-  doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);
-  doc.line(M,PH-10,W-M,PH-10);
+  // FOOTER
+  doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);doc.line(M,PH-10,W-M,PH-10);
   doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(160,160,160);
-  doc.text("Otosense Srl - Studio di Riabilitazione Audiologica - Dispositivi Unitron / Sonova Group",M,PH-6);
-  doc.text(`Preventivo ${numero} - ${data} - ${apNome} - Listino 2026 - Valido 30 giorni`,W-M,PH-6,{align:"right"});
+  doc.text("Otosense Srl - Studio di Riabilitazione Audiologica - Unitron / Sonova Group",M,PH-6);
+  doc.text("Preventivo "+numero+" - "+data+" - "+apNome+" - Listino 2026 - Valido 30 giorni",W-M,PH-6,{align:"right"});
 
   return doc;
 }
+</script>
 
-/* ══ HTML STAMPABILE (fallback offline) ══ */
-function buildPrintHTML(record){
-  const{paziente,livelloObj,famigliaObj,uso,scontoApplicato,prezzoBase,accessoriSel,totaleFinale,risposte,audioprotesista,numero,data}=record;
-  const f=n=>n.toLocaleString("it-IT",{minimumFractionDigits:2});
-  const apNome=audioprotesista?audioprotesista.nome:"";
-  const rispTxt=DOMANDE.map(d=>{const s=risposte[d.id];if(!s)return"";const o=d.opzioni.find(x=>x.score===s);return`<tr><td class="rl">${d.categoria}</td><td>${o?o.label:""}</td></tr>`;}).join("");
-  const accRighe=(accessoriSel||[]).filter(n=>ACC[n]&&ACC[n].p).map(n=>`<tr><td>${n}</td><td class="num">+ € ${ACC[n].p.toLocaleString("it-IT")}</td></tr>`).join("");
-  const vant=(livelloObj.vantaggi||[]).map(v=>`<span class="vbadge">+ ${v}</span>`).join("");
-  return`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"/><title>Preventivo ${numero}</title>
-<style>@page{size:A4;margin:12mm 15mm;}*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Segoe UI',Arial,sans-serif;font-size:8.5pt;color:#1a1a2e;}.hdr{background:#0a6e8a;color:#fff;padding:6mm 8mm;display:flex;justify-content:space-between;border-radius:3px;margin-bottom:4mm;}.body{display:grid;grid-template-columns:1fr 1fr;gap:3mm;}.full{grid-column:1/3;}.st{font-size:6.5pt;font-weight:800;color:#0a6e8a;text-transform:uppercase;border-bottom:1px solid #cce4ed;padding-bottom:1mm;margin-bottom:2mm;}table{width:100%;border-collapse:collapse;}table tr td{padding:1.5mm 2mm;font-size:7.5pt;}table tr:nth-child(odd) td{background:#f5f9fb;}.rl{color:#555;width:35%;font-weight:700;}.num{text-align:right;}.vbadge{display:inline-block;background:#0a6e8a;color:#fff;border-radius:20px;padding:1px 7px;font-size:6.5pt;font-weight:700;margin:1px 2px;}.tbox{background:#0a6e8a;color:#fff;border-radius:5px;padding:3mm 4mm;display:flex;justify-content:space-between;align-items:center;margin-top:2mm;}.footer{margin-top:3mm;padding-top:2mm;border-top:1px solid #eee;display:flex;justify-content:space-between;font-size:6pt;color:#aaa;}.no-print{display:none;}@media print{.no-print{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>
-<div class="hdr"><div><div style="font-size:6pt;opacity:.7;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px">Preventivo Riabilitativo Audiologico</div><div style="font-size:15pt;font-weight:900;">Otosense Srl</div><div style="font-size:7pt;opacity:.7;">Studio di Riabilitazione Audiologica - Dispositivi Unitron / Sonova Group</div></div><div style="text-align:right"><div style="font-size:13pt;font-weight:900;">${numero}</div><div style="font-size:7.5pt;opacity:.8;">${data}</div><div style="font-size:7pt;opacity:.65;">${apNome}</div></div></div>
-<div class="body">
-<div><div class="st">Paziente</div><div style="background:#f0f8fb;border:1px solid #cce4ed;border-radius:4px;padding:2mm 3mm;"><div style="font-size:12pt;font-weight:900;color:#0a6e8a;">${paziente.nome} ${paziente.cognome}</div>${paziente.data?`<div style="font-size:7.5pt;color:#666;">Nato/a il ${new Date(paziente.data).toLocaleDateString("it-IT")}</div>`:""}</div></div>
-<div><div class="st">Livello Tecnologico</div><div style="background:${livelloObj.color};border-radius:4px;padding:2mm 3mm;color:#fff;"><div style="font-size:11pt;font-weight:900;">${livelloObj.label} - ${livelloObj.sublabel}</div><div style="font-size:7pt;font-style:italic;opacity:.85;margin-top:1mm;">${livelloObj.tagline}</div></div></div>
-<div><div class="st">Dispositivo</div><div style="border:1.5px solid #cce4ed;border-radius:4px;padding:2mm 3mm;"><div style="font-weight:900;font-size:10pt;">${famigliaObj.nome}</div><div style="font-size:7pt;color:#888;">${famigliaObj.brand} - ${famigliaObj.sottotipo}</div><div style="font-size:7.5pt;color:#444;margin-top:1mm;">${uso==="bino"?"Binaurale":"Monaurale"}</div></div></div>
-<div><div class="st">Percorso Incluso</div><div style="background:#e8f7fb;border:1.5px solid #0a6e8a;border-radius:4px;padding:2mm 3mm;"><div style="font-weight:800;font-size:8pt;color:#0a6e8a;margin-bottom:1mm;">15 sedute riabilitative incluse</div><div style="display:flex;gap:2mm;"><div style="flex:1;background:rgba(232,160,32,.15);border:1px solid #e8a020;border-radius:3px;padding:1.5mm;text-align:center;"><div style="font-size:14pt;font-weight:900;color:#b8860b;">4</div><div style="font-size:6pt;color:#888;">Adattamento 1-4</div></div><div style="flex:1;background:rgba(10,110,138,.1);border:1px solid #0a6e8a;border-radius:3px;padding:1.5mm;text-align:center;"><div style="font-size:14pt;font-weight:900;color:#0a6e8a;">11</div><div style="font-size:6pt;color:#888;">Follow-up 5-15</div></div></div></div></div>
-<div class="full"><div class="st">Profilo Clinico</div><table>${rispTxt}</table></div>
-<div class="full"><div class="st">Motivazione Clinica</div><div style="background:#f0f8fb;border:1px solid #cce4ed;border-radius:4px;padding:2mm 3mm;font-size:7.5pt;color:#444;line-height:1.5;">${MOTIVAZIONI[record.livello]||""}</div></div>
-<div class="full"><div class="st">Riepilogo Economico</div>
-<table><tr><td>Dispositivi - prezzo di listino</td><td class="num" style="text-decoration:line-through;color:#aaa;">€ ${f(prezzoBase)}</td></tr>
-<tr><td style="color:#1a9e5e;font-weight:700;">Promozione (-${scontoApplicato}%)</td><td class="num" style="color:#1a9e5e;font-weight:700;">- € ${f(prezzoBase*(scontoApplicato/100))}</td></tr>
-${accRighe}
-<tr><td style="color:#0a6e8a;font-style:italic;">Percorso riabilitativo 15 sedute</td><td class="num" style="color:#1a9e5e;font-weight:700;">Incluso</td></tr></table>
-<div class="tbox"><div><div style="font-size:9pt;font-weight:700;">TOTALE PERCORSO COMPLETO - IVA inclusa</div><div style="font-size:6.5pt;opacity:.7;">Dispositivi + 15 sedute - Valida 30 giorni</div></div><div style="font-size:18pt;font-weight:900;">€ ${f(totaleFinale)}</div></div>
-<div style="margin-top:2mm;">${vant}</div>
-</div></div>
-<div class="footer"><span>Otosense Srl - Studio di Riabilitazione Audiologica - Dispositivi Unitron / Sonova Group</span><span>Preventivo ${numero} - ${data} - ${apNome} - Listino 2026 - Valido 30 giorni</span></div>
-</body></html>`;
-}
-
-/* ══ UI ══ */
+<!-- APP REACT -->
+<script type="text/babel">
+const{useState,useEffect,useRef}=React;
 const btnP={background:BRAND,color:"#fff",border:"none",borderRadius:10,padding:"12px 28px",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"};
-const btnS={background:"#fff",color:BRAND,border:`2px solid ${BRAND}`,borderRadius:10,padding:"10px 24px",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"};
-const inp={width:"100%",padding:"10px 14px",borderRadius:8,border:"1.5px solid #ddd",fontSize:14,outline:"none",background:"#fff",boxSizing:"border-box",fontFamily:"inherit"};
-const lbl={display:"block",fontWeight:600,fontSize:13,color:"#1a1a2e",marginBottom:6};
+const btnS={background:"#fff",color:BRAND,border:"2px solid "+BRAND,borderRadius:10,padding:"10px 24px",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"};
+const INP={width:"100%",padding:"10px 14px",borderRadius:8,border:"1.5px solid #ddd",fontSize:14,outline:"none",background:"#fff",boxSizing:"border-box",fontFamily:"inherit"};
 
-function Card({children,style,onClick,selected}){
-  return<div onClick={onClick} style={{background:"#fff",borderRadius:14,boxShadow:selected?`0 0 0 3px ${BRAND},0 8px 24px rgba(10,110,138,.15)`:"0 2px 14px rgba(0,0,0,.08)",padding:"18px 22px",cursor:onClick?"pointer":"default",border:selected?`2px solid ${BRAND}`:"2px solid transparent",transition:"all .2s",...style}}>{children}</div>;
+function Card({c,s,onClick,sel}){
+  return <div onClick={onClick} style={{background:"#fff",borderRadius:14,boxShadow:sel?"0 0 0 3px "+BRAND:"0 2px 14px rgba(0,0,0,.08)",padding:"18px 22px",cursor:onClick?"pointer":"default",border:sel?"2px solid "+BRAND:"2px solid transparent",transition:"all .2s",...s}}>{c}</div>;
 }
-function Badge({children,color}){return<span style={{background:color||BRAND,color:"#fff",borderRadius:20,padding:"2px 11px",fontSize:11,fontWeight:700,letterSpacing:.5,textTransform:"uppercase"}}>{children}</span>;}
-function ScoreBar({label,score,color}){
-  return<div style={{marginBottom:7}}><div style={{display:"flex",justifyContent:"space-between",fontSize:11,marginBottom:2}}><span style={{color:"#555"}}>{label}</span><span style={{fontWeight:700,color:color||BRAND}}>{score}/5</span></div><div style={{background:"#e8e8e8",borderRadius:20,height:6,overflow:"hidden"}}><div style={{width:`${(score/5)*100}%`,background:color||BRAND,height:"100%",borderRadius:20,transition:"width .5s"}}/></div></div>;
+function Bdg({t,col}){return <span style={{background:col||BRAND,color:"#fff",borderRadius:20,padding:"2px 11px",fontSize:11,fontWeight:700}}>{t}</span>;}
+
+function StepBar({cur}){
+  const ST=["Operatore","Paziente","Visita","Risultato","Dispositivo","Accessori","Proposta"];
+  return <div style={{display:"flex",alignItems:"center",justifyContent:"center",marginBottom:20,flexWrap:"wrap"}}>{ST.map((s,i)=><div key={i} style={{display:"flex",alignItems:"center"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}><div style={{width:24,height:24,borderRadius:"50%",background:i<cur?BRAND:i===cur?ACCENT:"#ddd",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:10}}>{i<cur?"✓":i+1}</div><span style={{fontSize:8,color:i===cur?ACCENT:i<cur?BRAND:"#aaa",whiteSpace:"nowrap"}}>{s}</span></div>{i<ST.length-1&&<div style={{width:14,height:2,background:i<cur?BRAND:"#ddd",marginBottom:12}}/>}</div>)}</div>;
 }
-const STEPS=["Operatore","Paziente","Visita","Risultato","Dispositivo","Accessori","Proposta"];
-function StepBar({current}){
-  return<div style={{display:"flex",alignItems:"center",justifyContent:"center",marginBottom:20,gap:0,flexWrap:"wrap"}}>{STEPS.map((s,i)=><div key={i} style={{display:"flex",alignItems:"center"}}><div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}><div style={{width:24,height:24,borderRadius:"50%",background:i<current?BRAND:i===current?ACCENT:"#ddd",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:10,boxShadow:i===current?`0 0 0 3px rgba(232,160,32,.3)`:"none"}}>{i<current?"✓":i+1}</div><span style={{fontSize:8,color:i===current?ACCENT:i<current?BRAND:"#aaa",fontWeight:i===current?700:500,whiteSpace:"nowrap"}}>{s}</span></div>{i<STEPS.length-1&&<div style={{width:14,height:2,background:i<current?BRAND:"#ddd",marginBottom:12}}/>}</div>)}</div>;
+
+function Hdr({ap}){
+  return <div style={{background:BRAND,padding:"12px 20px",display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+    <div style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👂</div>
+    <div><div style={{color:"#fff",fontWeight:900,fontSize:14}}>Otosense Srl</div><div style={{color:"rgba(255,255,255,.6)",fontSize:10}}>Studio di Riabilitazione Audiologica</div></div>
+    {ap&&<div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}><div style={{width:32,height:32,borderRadius:"50%",background:ap.colore,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:13}}>{ap.iniziali}</div><div style={{textAlign:"right"}}><div style={{color:"#fff",fontSize:12,fontWeight:700}}>{ap.nome}</div><div style={{color:"rgba(255,255,255,.55)",fontSize:9}}>Audioprotesista</div></div></div>}
+  </div>;
 }
-function Header({ap}){
-  return<div style={{background:BRAND,padding:"12px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 4px 20px rgba(10,110,138,.3)",marginBottom:20}}><div style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👂</div><div><div style={{color:"#fff",fontWeight:900,fontSize:14}}>Otosense Srl</div><div style={{color:"rgba(255,255,255,.6)",fontSize:10}}>Studio di Riabilitazione Audiologica</div></div>{ap&&<div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}><div style={{width:32,height:32,borderRadius:"50%",background:ap.colore,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:13}}>{ap.iniziali}</div><div style={{textAlign:"right"}}><div style={{color:"#fff",fontSize:12,fontWeight:700}}>{ap.nome}</div><div style={{color:"rgba(255,255,255,.55)",fontSize:9}}>Audioprotesista</div></div></div>}</div>;
+
+function Lay({children,cur,ap}){
+  return <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#e8f4f8,#f5f8fa,#fff)",fontFamily:"'Segoe UI',Arial,sans-serif",paddingBottom:48}}>
+    <Hdr ap={ap}/>
+    <div style={{maxWidth:640,margin:"0 auto",padding:"0 16px"}}>
+      {cur!=null&&<StepBar cur={cur}/>}
+      <div style={{background:"#fff",borderRadius:14,boxShadow:"0 2px 14px rgba(0,0,0,.08)",padding:"18px 22px",minHeight:320}}>{children}</div>
+    </div>
+  </div>;
 }
-function Layout({children,current,ap}){
-  return<div style={{minHeight:"100vh",background:"linear-gradient(160deg,#e8f4f8 0%,#f5f8fa 60%,#fff 100%)",fontFamily:"'Segoe UI','Helvetica Neue',Arial,sans-serif",paddingBottom:48}}><Header ap={ap}/><div style={{maxWidth:640,margin:"0 auto",padding:"0 16px"}}>{current!=null&&<StepBar current={current}/>}<Card style={{minHeight:320}}>{children}</Card></div></div>;
-}
-function DriveBanner({status,onLogin}){
-  if(status==="ok")return<div style={{background:"#f0fdf4",border:"1.5px solid #1a9e5e",borderRadius:9,padding:"7px 13px",marginBottom:10,display:"flex",alignItems:"center",gap:8,fontSize:12}}><span>✅</span><span style={{color:"#1a9e5e",fontWeight:700}}>Google Drive connesso — PDF salvato automaticamente</span></div>;
-  if(status==="loading")return<div style={{background:"#fffbf0",border:"1.5px solid #e8a020",borderRadius:9,padding:"7px 13px",marginBottom:10,fontSize:12}}><span style={{color:"#b8860b",fontWeight:700}}>⏳ Connessione in corso…</span></div>;
-  if(status==="error")return<div style={{background:"#fff5f5",border:"1.5px solid #c0392b",borderRadius:9,padding:"7px 13px",marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:12}}><span style={{color:RED,fontWeight:700}}>⚠️ Drive non connesso</span><button onClick={onLogin} style={{...btnS,fontSize:11,padding:"4px 12px",color:RED,borderColor:RED}}>Riprova</button></div>;
-  return<div style={{background:"#f0f8fb",border:`1.5px solid ${BRAND}`,borderRadius:9,padding:"9px 13px",marginBottom:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}><div><div style={{fontWeight:700,fontSize:12,color:BRAND}}>☁️ Salvataggio automatico su Google Drive</div><div style={{fontSize:11,color:"#888",marginTop:1}}>Accedi per salvare i PDF nella cartella condivisa</div></div><button onClick={onLogin} style={{...btnP,fontSize:12,padding:"8px 16px",display:"flex",alignItems:"center",gap:6}}><svg width="16" height="16" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Accedi con Google</button></div>;
+
+function DriveBnr({status,onLogin}){
+  if(status==="ok") return <div style={{background:"#f0fdf4",border:"1.5px solid #1a9e5e",borderRadius:9,padding:"7px 13px",marginBottom:10,fontSize:12,display:"flex",alignItems:"center",gap:8}}><span>✅</span><span style={{color:"#1a9e5e",fontWeight:700}}>Google Drive connesso — PDF salvato automaticamente</span></div>;
+  if(status==="loading") return <div style={{background:"#fffbf0",border:"1.5px solid #e8a020",borderRadius:9,padding:"7px 13px",marginBottom:10,fontSize:12}}><span style={{color:"#b8860b",fontWeight:700}}>⏳ Connessione in corso...</span></div>;
+  if(status==="error") return <div style={{background:"#fff5f5",border:"1.5px solid "+RED,borderRadius:9,padding:"7px 13px",marginBottom:10,fontSize:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{color:RED,fontWeight:700}}>⚠️ Drive non connesso</span><button onClick={onLogin} style={{...btnS,fontSize:11,padding:"4px 12px",color:RED,borderColor:RED}}>Riprova</button></div>;
+  return <div style={{background:"#f0f8fb",border:"1.5px solid "+BRAND,borderRadius:9,padding:"9px 13px",marginBottom:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+    <div><div style={{fontWeight:700,fontSize:12,color:BRAND}}>☁️ Salvataggio automatico su Google Drive</div><div style={{fontSize:11,color:"#888",marginTop:1}}>Accedi per salvare i PDF nella cartella condivisa</div></div>
+    <button onClick={onLogin} style={{...btnP,fontSize:12,padding:"8px 16px"}}>Accedi con Google</button>
+  </div>;
 }
 
 function Archivio({ap,onBack}){
   const[lista,setLista]=useState([]);
-  const f=n=>n&&n.toLocaleString?n.toLocaleString("it-IT",{minimumFractionDigits:2}):"—";
   useEffect(()=>{const all=caricaArchivio();setLista(ap?all.filter(r=>r.audioprotesista&&r.audioprotesista.id===ap.id):all);},[]);
-  return<Layout ap={ap}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div><h2 style={{color:BRAND,fontSize:19,fontWeight:900,marginBottom:2}}>📋 Archivio Preventivi</h2><div style={{fontSize:12,color:"#888"}}>{lista.length} preventiv{lista.length===1?"o":"i"}</div></div><button style={{...btnS,fontSize:12,padding:"8px 16px"}} onClick={onBack}>← Indietro</button></div>{lista.length===0&&<div style={{textAlign:"center",padding:40,color:"#aaa"}}><div style={{fontSize:36,marginBottom:8}}>📭</div><div>Nessun preventivo</div></div>}{lista.map(r=>{const lo=LIVELLI.find(l=>l.id===r.livello);const fo=FAMIGLIE.find(x=>x.id===r.famiglia);const ap2=AUDIOPROTESISTI.find(a=>r.audioprotesista&&a.id===r.audioprotesista.id);return<div key={r.numero} style={{border:"1.5px solid #e0e0e0",borderRadius:12,padding:"13px 16px",marginBottom:10,background:"#fff"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}><div><div style={{display:"flex",gap:8,alignItems:"center",marginBottom:3}}><span style={{fontWeight:900,fontSize:15,color:BRAND}}>{r.numero}</span>{lo&&<span style={{background:lo.color,color:"#fff",borderRadius:20,padding:"1px 9px",fontSize:10,fontWeight:700}}>{lo.label}</span>}</div><div style={{fontWeight:700,fontSize:13}}>{r.paziente&&r.paziente.nome} {r.paziente&&r.paziente.cognome}</div><div style={{fontSize:11,color:"#888"}}>{r.data} {ap2&&`- ${ap2.nome}`}</div></div><div style={{textAlign:"right"}}><div style={{fontWeight:900,fontSize:16,color:BRAND}}>€ {f(r.totaleFinale)}</div><div style={{fontSize:10,color:"#aaa"}}>{fo&&fo.nome}</div></div></div>
-  <div style={{display:"flex",gap:8}}>
-    <button onClick={()=>{if(window.jspdf){const doc=buildPDF({...r,livelloObj:lo||r.livelloObj,famigliaObj:fo||r.famigliaObj,audioprotesista:ap2||r.audioprotesista});doc.save(`Preventivo_${r.numero}.pdf`);}}} style={{...btnP,fontSize:12,padding:"7px 16px",background:RED}}>📄 PDF</button>
-    <button onClick={()=>{const html=buildPrintHTML({...r,livelloObj:lo||r.livelloObj,famigliaObj:fo||r.famigliaObj,audioprotesista:ap2||r.audioprotesista});const b=new Blob([html],{type:"text/html"});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=`Preventivo_${r.numero}.html`;document.body.appendChild(a);a.click();document.body.removeChild(a);}} style={{...btnS,fontSize:12,padding:"7px 16px"}}>🖨️ HTML</button>
-  </div></div>;})}
-  </Layout>;
+  return <Lay ap={ap}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+      <h2 style={{color:BRAND,fontSize:19,fontWeight:900}}>📋 Archivio — {lista.length} preventivi</h2>
+      <button style={{...btnS,fontSize:12,padding:"8px 16px"}} onClick={onBack}>← Indietro</button>
+    </div>
+    {lista.length===0&&<div style={{textAlign:"center",padding:40,color:"#aaa"}}><div style={{fontSize:36}}>📭</div><div>Nessun preventivo</div></div>}
+    {lista.map(r=>{
+      const lv=LIVELLI.find(l=>l.id===r.livello);
+      const fam=FAMIGLIE.find(f=>f.id===r.famiglia);
+      const ap2=AUDIOPROTESISTI.find(a=>r.audioprotesista&&a.id===r.audioprotesista.id);
+      const rec={...r,livelloObj:lv||r.livelloObj,famigliaObj:fam||r.famigliaObj,audioprotesista:ap2||r.audioprotesista};
+      return <div key={r.numero} style={{border:"1.5px solid #e0e0e0",borderRadius:12,padding:"13px 16px",marginBottom:10}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+          <div><div style={{fontWeight:900,fontSize:15,color:BRAND}}>{r.numero}</div><div style={{fontWeight:700,fontSize:13}}>{r.paziente&&r.paziente.nome} {r.paziente&&r.paziente.cognome}</div><div style={{fontSize:11,color:"#888"}}>{r.data}</div></div>
+          <div style={{fontWeight:900,fontSize:16,color:BRAND}}>€ {fmt(r.totaleFinale)}</div>
+        </div>
+        <button onClick={()=>{const doc=buildPDF(rec);const b=doc.output("blob");const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download="Preventivo_"+r.numero+".pdf";document.body.appendChild(a);a.click();document.body.removeChild(a);}} style={{...btnP,fontSize:12,padding:"7px 16px",background:RED}}>📄 Scarica PDF</button>
+      </div>;
+    })}
+  </Lay>;
 }
 
 function App(){
-  const[schermata,setSchermata]=useState("login");
+  const[screen,setScreen]=useState("login");
   const[ap,setAp]=useState(null);
   const[step,setStep]=useState(0);
-  const[paziente,setPaziente]=useState({nome:"",cognome:"",data:""});
-  const[risposte,setRisposte]=useState({});
+  const[paz,setPaz]=useState({nome:"",cognome:"",data:""});
+  const[risp,setRisp]=useState({});
   const[dIdx,setDIdx]=useState(0);
   const[livello,setLivello]=useState(null);
   const[uso,setUso]=useState("bino");
-  const[famiglia,setFamiglia]=useState(null);
-  const[accessoriSel,setAccSel]=useState([]);
-  const[promoAttiva,setPromo]=useState(false);
-  const[numeroPreventivo,setNumero]=useState(null);
+  const[fam,setFam]=useState(null);
+  const[accSel,setAccSel]=useState([]);
+  const[promo,setPromo]=useState(false);
+  const[numPrev,setNumPrev]=useState(null);
   const[salvato,setSalvato]=useState(false);
-  const[driveToken,setDriveToken]=useState(null);
-  const[driveStatus,setDriveStatus]=useState("idle");
-  const tokenRef=useRef(null);
+  const[drvTok,setDrvTok]=useState(null);
+  const[drvSt,setDrvSt]=useState("idle");
+  const tokRef=useRef(null);
 
-  useEffect(()=>{if(!window.google)return;tokenRef.current=window.google.accounts.oauth2.initTokenClient({client_id:GOOGLE_CLIENT_ID,scope:DRIVE_SCOPE,callback:(r)=>{if(r.error){setDriveStatus("error");return;}setDriveToken(r.access_token);setDriveStatus("ok");}});},[]);
-  const handleDriveLogin=()=>{setDriveStatus("loading");if(tokenRef.current)tokenRef.current.requestAccessToken();else setDriveStatus("error");};
+  useEffect(()=>{
+    if(!window.google)return;
+    tokRef.current=window.google.accounts.oauth2.initTokenClient({
+      client_id:GOOGLE_CLIENT_ID,scope:DRIVE_SCOPE,
+      callback:r=>{if(r.error){setDrvSt("error");return;}setDrvTok(r.access_token);setDrvSt("ok");}
+    });
+  },[]);
 
-  const livelloObj=LIVELLI.find(l=>l.id===livello);
-  const famigliaObj=FAMIGLIE.find(f=>f.id===famiglia);
-  const prezzoBase=famigliaObj&&livello?(uso==="bino"?famigliaObj.livelli[livello]&&famigliaObj.livelli[livello].bino:famigliaObj.livelli[livello]&&famigliaObj.livelli[livello].mono)||0:0;
-  const scontoPromo=PROMO_MAP[livello]||0;
-  const totAcc=accessoriSel.reduce((a,n)=>a+(ACC[n]&&ACC[n].p?ACC[n].p:0),0);
-  const totaleFinale=prezzoBase*(1-scontoPromo/100)+totAcc;
-  const fmt=n=>n.toLocaleString("it-IT",{minimumFractionDigits:2});
-  const puoPromo=scontoPromo>0;
+  const loginDrive=()=>{setDrvSt("loading");if(tokRef.current)tokRef.current.requestAccessToken();else setDrvSt("error");};
 
-  const rispondi=(id,score)=>{const n={...risposte,[id]:score};setRisposte(n);if(dIdx<DOMANDE.length-1)setDIdx(dIdx+1);else{setLivello(calcolaLivello(n));setStep(3);}};
-  const toggleAcc=n=>setAccSel(p=>p.includes(n)?p.filter(x=>x!==n):[...p,n]);
-  const reset=()=>{setStep(0);setPaziente({nome:"",cognome:"",data:""});setRisposte({});setDIdx(0);setLivello(null);setFamiglia(null);setUso("bino");setAccSel([]);setPromo(false);setNumero(null);setSalvato(false);};
+  const lv=LIVELLI.find(l=>l.id===livello);
+  const famObj=FAMIGLIE.find(f=>f.id===fam);
+  const pb=famObj&&livello?(uso==="bino"?famObj.livelli[livello]&&famObj.livelli[livello].bino:famObj.livelli[livello]&&famObj.livelli[livello].mono)||0:0;
+  const sp=PROMO_MAP[livello]||0;
+  const totAcc=accSel.reduce((a,n)=>a+(ACC[n]&&ACC[n].p?ACC[n].p:0),0);
+  const tot=pb*(1-sp/100)+totAcc;
 
-  const handleStampa=async()=>{
-    let num=numeroPreventivo;
-    if(!num){num=getNextNumero(ap.iniziali);setNumero(num);}
-    const oggi=new Date().toLocaleDateString("it-IT",{day:"2-digit",month:"long",year:"numeric"});
-    const record={numero:num,data:oggi,audioprotesista:ap,paziente,livello,famiglia,uso,scontoApplicato:scontoPromo,prezzoBase,accessoriSel,totaleFinale,risposte,livelloObj,famigliaObj};
-    if(!salvato){salvaPreventivo(record);setSalvato(true);}
-    if(window.jspdf){
-      try{
-        const doc=buildPDF(record);
-        // Scarica PDF localmente
-        const pdfBlob=doc.output("blob");
-        const pdfUrl=URL.createObjectURL(pdfBlob);
-        const pdfA=document.createElement("a");
-        pdfA.href=pdfUrl; pdfA.download=`Preventivo_${num}.pdf`;
-        document.body.appendChild(pdfA); pdfA.click(); document.body.removeChild(pdfA);
-        setTimeout(()=>URL.revokeObjectURL(pdfUrl),5000);
-        // Carica su Drive se connesso
-        if(driveToken){
-          const pdfBytes=doc.output("arraybuffer");
-          const meta={name:`Preventivo_${num}.pdf`,parents:[DRIVE_FOLDER_ID],mimeType:"application/pdf"};
-          const form=new FormData();
-          form.append("metadata",new Blob([JSON.stringify(meta)],{type:"application/json"}));
-          form.append("file",new Blob([pdfBytes],{type:"application/pdf"}));
-          await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",{
-            method:"POST",headers:{Authorization:`Bearer ${driveToken}`},body:form
-          });
-        }
-      }catch(e){
-        console.error("PDF error",e);
-        // fallback HTML
-        const html=buildPrintHTML(record);
-        const blob=new Blob([html],{type:"text/html;charset=utf-8"});
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement("a");
-        a.href=url;a.download=`Preventivo_${num}.html`;
-        document.body.appendChild(a);a.click();document.body.removeChild(a);
-      }
-    }
+  const rispondi=(id,score)=>{
+    const n={...risp,[id]:score};setRisp(n);
+    if(dIdx<DOMANDE.length-1)setDIdx(dIdx+1);
+    else{setLivello(calcolaLivello(n));setStep(3);}
   };
 
-  if(schermata==="login")return<Layout ap={null} current={null}><div style={{textAlign:"center",marginBottom:28}}><div style={{fontSize:48,marginBottom:10}}>👂</div><h2 style={{color:BRAND,fontSize:22,fontWeight:900,marginBottom:6}}>Otosense Srl</h2><p style={{color:"#666",fontSize:13}}>Seleziona il tuo nome per iniziare</p></div><div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>{AUDIOPROTESISTI.map(a=><div key={a.id} onClick={()=>{setAp(a);setSchermata("workflow");}} style={{display:"flex",alignItems:"center",gap:14,padding:"14px 18px",borderRadius:12,border:"2px solid #e0e0e0",cursor:"pointer",background:"#fff",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=a.colore;e.currentTarget.style.background="#f8f8f8";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="#e0e0e0";e.currentTarget.style.background="#fff";}}><div style={{width:46,height:46,borderRadius:"50%",background:a.colore,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:16,boxShadow:`0 4px 12px ${a.colore}55`}}>{a.iniziali}</div><div style={{flex:1}}><div style={{fontWeight:700,fontSize:15,color:"#1a1a2e"}}>{a.nome}</div><div style={{fontSize:11,color:"#aaa"}}>Audioprotesista - Otosense Srl</div></div><div style={{color:"#ccc",fontSize:20}}>→</div></div>)}</div><div style={{borderTop:"1px solid #eee",paddingTop:16,textAlign:"center"}}><button style={{...btnS,fontSize:12}} onClick={()=>setSchermata("archivio")}>📋 Archivio Preventivi</button></div></Layout>;
+  const toggleAcc=n=>setAccSel(p=>p.includes(n)?p.filter(x=>x!==n):[...p,n]);
+  const reset=()=>{setStep(0);setPaz({nome:"",cognome:"",data:""});setRisp({});setDIdx(0);setLivello(null);setFam(null);setUso("bino");setAccSel([]);setPromo(false);setNumPrev(null);setSalvato(false);};
 
-  if(schermata==="archivio")return<Archivio ap={ap} onBack={()=>setSchermata(ap?"workflow":"login")}/>;
+  const handlePDF=async()=>{
+    let num=numPrev;
+    if(!num){num=getNumero(ap.iniziali);setNumPrev(num);}
+    const oggi=new Date().toLocaleDateString("it-IT",{day:"2-digit",month:"long",year:"numeric"});
+    const rec={numero:num,data:oggi,audioprotesista:ap,paziente:paz,livello,famiglia:fam,uso,scontoApplicato:sp,prezzoBase:pb,accessoriSel:accSel,totaleFinale:tot,risposte:risp,livelloObj:lv,famigliaObj:famObj};
+    if(!salvato){salvaPrev(rec);setSalvato(true);}
+    try{
+      const doc=buildPDF(rec);
+      const blob=doc.output("blob");
+      // Scarica localmente
+      const u=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=u;a.download="Preventivo_"+num+".pdf";
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(u),5000);
+      // Carica su Drive
+      if(drvTok){
+        const bytes=doc.output("arraybuffer");
+        await driveUpload(drvTok,"Preventivo_"+num+".pdf",bytes);
+      }
+    }catch(e){console.error("PDF error",e);}
+  };
 
-  if(step===0)return<Layout current={0} ap={ap}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><h2 style={{color:BRAND,fontSize:19,fontWeight:900}}>Dati del Paziente</h2><div style={{display:"flex",gap:8}}><button style={{...btnS,fontSize:11,padding:"6px 12px"}} onClick={()=>setSchermata("archivio")}>📋</button><button style={{...btnS,fontSize:11,padding:"6px 12px",color:RED,borderColor:RED}} onClick={()=>{setAp(null);setSchermata("login");}}>⇦</button></div></div><DriveBanner status={driveStatus} onLogin={handleDriveLogin}/><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}><div><label style={lbl}>Nome</label><input style={inp} value={paziente.nome} onChange={e=>setPaziente({...paziente,nome:e.target.value})} placeholder="Es. Mario"/></div><div><label style={lbl}>Cognome</label><input style={inp} value={paziente.cognome} onChange={e=>setPaziente({...paziente,cognome:e.target.value})} placeholder="Es. Rossi"/></div></div><div><label style={lbl}>Data di nascita</label><input type="date" style={{...inp,width:"auto"}} value={paziente.data} onChange={e=>setPaziente({...paziente,data:e.target.value})}/></div><div style={{marginTop:26,display:"flex",justifyContent:"flex-end"}}><button style={btnP} onClick={()=>setStep(1)}>Avvia Valutazione →</button></div></Layout>;
+  // LOGIN
+  if(screen==="login") return <Lay cur={null} ap={null}>
+    <div style={{textAlign:"center",marginBottom:28}}>
+      <div style={{fontSize:48,marginBottom:10}}>👂</div>
+      <h2 style={{color:BRAND,fontSize:22,fontWeight:900,marginBottom:6}}>Otosense Srl</h2>
+      <p style={{color:"#666",fontSize:13}}>Seleziona il tuo nome per iniziare</p>
+    </div>
+    <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
+      {AUDIOPROTESISTI.map(a=><div key={a.id} onClick={()=>{setAp(a);setScreen("wf");}} style={{display:"flex",alignItems:"center",gap:14,padding:"14px 18px",borderRadius:12,border:"2px solid #e0e0e0",cursor:"pointer",background:"#fff"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=a.colore;}} onMouseLeave={e=>{e.currentTarget.style.borderColor="#e0e0e0";}}>
+        <div style={{width:46,height:46,borderRadius:"50%",background:a.colore,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:16}}>{a.iniziali}</div>
+        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:15}}>{a.nome}</div><div style={{fontSize:11,color:"#aaa"}}>Audioprotesista</div></div>
+        <div style={{color:"#ccc",fontSize:20}}>→</div>
+      </div>)}
+    </div>
+    <div style={{borderTop:"1px solid #eee",paddingTop:16,textAlign:"center"}}>
+      <button style={{...btnS,fontSize:12}} onClick={()=>setScreen("archivio")}>📋 Archivio Preventivi</button>
+    </div>
+  </Lay>;
 
-  if(step===1){const d=DOMANDE[dIdx];return<Layout current={1} ap={ap}><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#888",marginBottom:5}}><span style={{fontWeight:600,color:BRAND}}>{d.categoria}</span><span>{dIdx+1}/{DOMANDE.length}</span></div><div style={{background:"#e8e8e8",borderRadius:20,height:5,marginBottom:18,overflow:"hidden"}}><div style={{width:`${(dIdx/DOMANDE.length)*100}%`,background:BRAND,height:"100%",borderRadius:20,transition:"width .4s"}}/></div><h3 style={{fontSize:15,fontWeight:800,color:"#1a1a2e",marginBottom:16,lineHeight:1.4}}>{d.testo}</h3><div style={{display:"flex",flexDirection:"column",gap:8}}>{d.opzioni.map((op,i)=><div key={i} onClick={()=>rispondi(d.id,op.score)} style={{padding:"11px 15px",borderRadius:10,border:"2px solid #e0e0e0",cursor:"pointer",background:"#fff",display:"flex",alignItems:"center",gap:11,transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=BRAND;e.currentTarget.style.background="#f0f8fb";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="#e0e0e0";e.currentTarget.style.background="#fff";}}><div style={{width:26,height:26,borderRadius:"50%",background:"#f0f8fb",color:BRAND,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:12,flexShrink:0}}>{i+1}</div><span style={{fontSize:13,color:"#333",lineHeight:1.4}}>{op.label}</span></div>)}</div><div style={{marginTop:16,display:"flex",justifyContent:"space-between"}}><button style={{...btnS,fontSize:12,padding:"7px 14px"}} onClick={()=>dIdx>0?setDIdx(dIdx-1):setStep(0)}>← Indietro</button></div></Layout>;}
+  if(screen==="archivio") return <Archivio ap={ap} onBack={()=>setScreen(ap?"wf":"login")}/>;
 
-  if(step===3){const lObj=LIVELLI.find(l=>l.id===livello);return<Layout current={2} ap={ap}><div style={{textAlign:"center",marginBottom:12}}><div style={{fontSize:11,color:"#888",marginBottom:2}}>🤖 Algoritmo clinico Otosense</div><h2 style={{fontSize:20,fontWeight:900,color:"#1a1a2e"}}>Livello Raccomandato</h2></div><div style={{background:lObj.color,borderRadius:14,padding:"16px 20px",color:"#fff",marginBottom:14,textAlign:"center"}}><div style={{fontSize:40,fontWeight:900,lineHeight:1,marginBottom:6}}>{lObj.label}</div><div style={{fontSize:12,opacity:.85,fontStyle:"italic",marginBottom:9}}>{lObj.tagline}</div><div style={{display:"flex",gap:5,flexWrap:"wrap",justifyContent:"center"}}>{(lObj.vantaggi||[]).map((v,i)=><span key={i} style={{background:"rgba(255,255,255,.2)",borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:700}}>+ {v}</span>)}</div></div><div style={{background:"#f0f8fb",border:`1.5px solid ${lObj.color}`,borderRadius:10,padding:"11px 14px",marginBottom:12}}><div style={{fontSize:11,fontWeight:700,color:lObj.color,marginBottom:5}}>Motivazione clinica</div><p style={{fontSize:12,color:"#444",lineHeight:1.6,margin:0}}>{MOTIVAZIONI[livello]}</p></div><div style={{marginBottom:12}}><ScoreBar label="🌍 Ambienti" score={risposte.env||0} color={lObj.color}/><ScoreBar label="🔊 Rumore" score={risposte.rumore||0} color={lObj.color}/><ScoreBar label="👥 Vita sociale" score={risposte.social||0} color={lObj.color}/><ScoreBar label="🗣️ Ascolto" score={risposte.ascolto||0} color={lObj.color}/><ScoreBar label="🎯 Aspettative" score={risposte.aspettativa||0} color={lObj.color}/><ScoreBar label="💶 Investimento" score={risposte.budget||0} color={lObj.color}/></div><div style={{background:"#fffbf0",border:"1.5px solid #f0d080",borderRadius:9,padding:"10px 13px",marginBottom:12}}><div style={{fontSize:11,fontWeight:700,color:"#b8860b",marginBottom:7}}>⚙️ Override</div><div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{LIVELLI.map(l=><button key={l.id} onClick={()=>setLivello(l.id)} style={{padding:"5px 12px",borderRadius:20,border:"2px solid",borderColor:livello===l.id?l.color:"#ddd",background:livello===l.id?l.color:"#fff",color:livello===l.id?"#fff":"#555",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{l.label}</button>)}</div></div><div style={{display:"flex",justifyContent:"space-between"}}><button style={btnS} onClick={()=>{setDIdx(DOMANDE.length-1);setStep(1);}}>← Modifica</button><button style={btnP} onClick={()=>setStep(4)}>Scegli Dispositivo →</button></div></Layout>;}
+  // STEP 0: PAZIENTE
+  if(step===0) return <Lay cur={0} ap={ap}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+      <h2 style={{color:BRAND,fontSize:19,fontWeight:900}}>Dati del Paziente</h2>
+      <div style={{display:"flex",gap:8}}>
+        <button style={{...btnS,fontSize:11,padding:"6px 12px"}} onClick={()=>setScreen("archivio")}>📋</button>
+        <button style={{...btnS,fontSize:11,padding:"6px 12px",color:RED,borderColor:RED}} onClick={()=>{setAp(null);setScreen("login");}}>⇦</button>
+      </div>
+    </div>
+    <DriveBnr status={drvSt} onLogin={loginDrive}/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
+      <div><label style={{display:"block",fontWeight:600,fontSize:13,marginBottom:6}}>Nome</label><input style={INP} value={paz.nome} onChange={e=>setPaz({...paz,nome:e.target.value})} placeholder="Es. Mario"/></div>
+      <div><label style={{display:"block",fontWeight:600,fontSize:13,marginBottom:6}}>Cognome</label><input style={INP} value={paz.cognome} onChange={e=>setPaz({...paz,cognome:e.target.value})} placeholder="Es. Rossi"/></div>
+    </div>
+    <div><label style={{display:"block",fontWeight:600,fontSize:13,marginBottom:6}}>Data di nascita</label><input type="date" style={{...INP,width:"auto"}} value={paz.data} onChange={e=>setPaz({...paz,data:e.target.value})}/></div>
+    <div style={{marginTop:26,display:"flex",justifyContent:"flex-end"}}><button style={btnP} onClick={()=>setStep(1)}>Avvia Valutazione →</button></div>
+  </Lay>;
 
-  if(step===4){const ff=FAMIGLIE.filter(f=>f.livelli[livello]);return<Layout current={3} ap={ap}><h2 style={{color:BRAND,marginBottom:4,fontSize:19,fontWeight:900}}>Scelta del Dispositivo</h2><div style={{background:livelloObj.light,borderRadius:8,padding:"5px 12px",marginBottom:12,fontSize:12,color:livelloObj.color,fontWeight:700}}>{livelloObj.label} - {livelloObj.sublabel}</div><div style={{display:"flex",gap:8,marginBottom:14}}>{[["bino","👂👂 Binaurale"],["mono","👂 Monaurale"]].map(([u,lb])=><button key={u} onClick={()=>setUso(u)} style={{flex:1,padding:"9px 0",borderRadius:9,border:"2px solid",borderColor:uso===u?BRAND:"#ddd",background:uso===u?BRAND:"#fff",color:uso===u?"#fff":"#555",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>{lb}</button>)}</div>{[{t:"🎧 RIC",ids:["moxi_s_r","moxi_s_312"]},{t:"🔊 BTE",ids:["stride_vpr","stride_vm312"]},{t:"👁️ Endoauricolare",ids:["insera_s_r","insera_s_nw"]},{t:"⚡ Instant Fit Quix",ids:["quix_r","quix_nw"]}].map(grp=>{const items=ff.filter(f=>grp.ids.includes(f.id));if(!items.length)return null;return<div key={grp.t} style={{marginBottom:12}}><div style={{fontSize:10,fontWeight:700,color:"#888",marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>{grp.t}</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>{items.map(f=>{const pr=uso==="bino"?f.livelli[livello]&&f.livelli[livello].bino:f.livelli[livello]&&f.livelli[livello].mono;return<Card key={f.id} selected={famiglia===f.id} onClick={()=>{setFamiglia(f.id);setPromo(false);setAccSel([]);}} style={{padding:"10px 12px"}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:17}}>{f.icona}</span>{f.ricaricabile&&<Badge color={GREEN}>Ricar.</Badge>}</div><div style={{fontWeight:800,fontSize:12,color:"#1a1a2e",marginBottom:1}}>{f.nome}</div><div style={{fontSize:10,color:"#888",marginBottom:5}}>{f.sottotipo}</div><div style={{fontWeight:800,fontSize:14,color:BRAND}}>€ {pr?pr.toLocaleString("it-IT"):"—"}</div>{famiglia===f.id&&f.note&&<p style={{margin:"6px 0 0",fontSize:10,color:"#888",fontStyle:"italic"}}>{f.note}</p>}</Card>;})} </div></div>;})} <div style={{display:"flex",justifyContent:"space-between",marginTop:14}}><button style={btnS} onClick={()=>setStep(3)}>← Indietro</button><button style={{...btnP,opacity:famiglia?1:.5}} onClick={()=>famiglia&&setStep(5)} disabled={!famiglia}>Avanti →</button></div></Layout>;}
+  // STEP 1: QUESTIONARIO
+  if(step===1){
+    const d=DOMANDE[dIdx];
+    return <Lay cur={1} ap={ap}>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#888",marginBottom:5}}>
+        <span style={{fontWeight:600,color:BRAND}}>{d.cat}</span><span>{dIdx+1}/{DOMANDE.length}</span>
+      </div>
+      <div style={{background:"#e8e8e8",borderRadius:20,height:5,marginBottom:18,overflow:"hidden"}}>
+        <div style={{width:(dIdx/DOMANDE.length*100)+"%",background:BRAND,height:"100%",borderRadius:20,transition:"width .4s"}}/>
+      </div>
+      <h3 style={{fontSize:15,fontWeight:800,color:"#1a1a2e",marginBottom:16,lineHeight:1.4}}>{d.testo}</h3>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {d.opzioni.map((op,i)=><div key={i} onClick={()=>rispondi(d.id,op.score)} style={{padding:"11px 15px",borderRadius:10,border:"2px solid #e0e0e0",cursor:"pointer",display:"flex",alignItems:"center",gap:11}} onMouseEnter={e=>{e.currentTarget.style.borderColor=BRAND;e.currentTarget.style.background="#f0f8fb";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="#e0e0e0";e.currentTarget.style.background="#fff";}}>
+          <div style={{width:26,height:26,borderRadius:"50%",background:"#f0f8fb",color:BRAND,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:12,flexShrink:0}}>{i+1}</div>
+          <span style={{fontSize:13,color:"#333",lineHeight:1.4}}>{op.label}</span>
+        </div>)}
+      </div>
+      <div style={{marginTop:16}}><button style={{...btnS,fontSize:12,padding:"7px 14px"}} onClick={()=>dIdx>0?setDIdx(dIdx-1):setStep(0)}>← Indietro</button></div>
+    </Lay>;
+  }
 
-  if(step===5){const ad=famigliaObj?famigliaObj.accessori:[];return<Layout current={4} ap={ap}><h2 style={{color:BRAND,marginBottom:5,fontSize:19,fontWeight:900}}>Accessori</h2><p style={{color:"#666",marginBottom:12,fontSize:12}}>Compatibili con {famigliaObj?famigliaObj.nome:""}</p><div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:12}}>{ad.map(nome=>{const a=ACC[nome];if(nome==="Ricevitore"&&!(famigliaObj&&famigliaObj.ricevitore))return null;const nd=nome==="Ricevitore"?(uso==="bino"?"Ricevitori":"Ricevitore"):nome;const inc=a&&(a.incluso||(a.inclusoPerModello&&a.inclusoPerModello.includes(famigliaObj&&famigliaObj.id)));const sel=accessoriSel.includes(nome);return<div key={nome} onClick={()=>!inc&&a&&a.p&&toggleAcc(nome)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 13px",borderRadius:9,border:"2px solid",borderColor:inc?"#1a9e5e":sel?BRAND:"#e0e0e0",background:inc?"#f0fdf4":sel?"#e8f7fb":"#fff",cursor:!inc&&a&&a.p?"pointer":"default"}}><div><div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontWeight:600,fontSize:13}}>{nd}</span>{inc&&<span style={{background:GREEN,color:"#fff",borderRadius:20,padding:"1px 8px",fontSize:9,fontWeight:700}}>✓ Incluso</span>}</div><div style={{fontSize:10,color:"#888",marginTop:1}}>{inc?"Incluso":a&&a.p?`€ ${a.p}`:"-"}</div></div>{!inc&&a&&a.p&&<div style={{width:20,height:20,borderRadius:"50%",background:sel?BRAND:"#eee",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:800}}>{sel?"✓":"+"}</div>}{inc&&<span>✅</span>}</div>;})} <div style={{background:"#f9f9f9",borderRadius:10,padding:"11px 14px",marginTop:8}}><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#888",marginBottom:2}}><span>Listino</span><span>€ {fmt(prezzoBase)}</span></div><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:GREEN,fontWeight:700,marginBottom:2}}><span>Promozione -{scontoPromo}%</span><span>- € {fmt(prezzoBase*(scontoPromo/100))}</span></div>{accessoriSel.map(n=><div key={n} style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"#888",marginBottom:1}}><span>{n}</span><span>€ {ACC[n]&&ACC[n].p?ACC[n].p:""}</span></div>)}<div style={{borderTop:"1.5px solid #ddd",marginTop:6,paddingTop:6,display:"flex",justifyContent:"space-between"}}><span style={{fontWeight:800,fontSize:13}}>Totale</span><span style={{fontWeight:900,fontSize:15,color:BRAND}}>€ {fmt(totaleFinale)}</span></div></div><div style={{display:"flex",justifyContent:"space-between",marginTop:14}}><button style={btnS} onClick={()=>setStep(4)}>← Indietro</button><button style={btnP} onClick={()=>setStep(6)}>Vai alla Proposta →</button></div></Layout>;}
+  // STEP 3: RISULTATO
+  if(step===3){
+    const lObj=LIVELLI.find(l=>l.id===livello);
+    return <Lay cur={2} ap={ap}>
+      <div style={{textAlign:"center",marginBottom:12}}><h2 style={{fontSize:20,fontWeight:900}}>🤖 Livello Raccomandato</h2></div>
+      <div style={{background:lObj.color,borderRadius:14,padding:"16px 20px",color:"#fff",marginBottom:14,textAlign:"center"}}>
+        <div style={{fontSize:40,fontWeight:900,lineHeight:1,marginBottom:6}}>{lObj.label}</div>
+        <div style={{fontSize:12,fontStyle:"italic",marginBottom:9}}>{lObj.tagline}</div>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap",justifyContent:"center"}}>{lObj.vantaggi.map((v,i)=><span key={i} style={{background:"rgba(255,255,255,.2)",borderRadius:20,padding:"2px 10px",fontSize:11,fontWeight:700}}>+ {v}</span>)}</div>
+      </div>
+      <div style={{background:"#f0f8fb",border:"1.5px solid "+lObj.color,borderRadius:10,padding:"11px 14px",marginBottom:12}}>
+        <p style={{fontSize:12,color:"#444",lineHeight:1.6}}>{MOTIVAZIONI[livello]}</p>
+      </div>
+      <div style={{background:"#fffbf0",border:"1.5px solid #f0d080",borderRadius:9,padding:"10px 13px",marginBottom:12}}>
+        <div style={{fontSize:11,fontWeight:700,color:"#b8860b",marginBottom:7}}>⚙️ Override</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{LIVELLI.map(l=><button key={l.id} onClick={()=>setLivello(l.id)} style={{padding:"5px 12px",borderRadius:20,border:"2px solid",borderColor:livello===l.id?l.color:"#ddd",background:livello===l.id?l.color:"#fff",color:livello===l.id?"#fff":"#555",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>{l.label}</button>)}</div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between"}}>
+        <button style={btnS} onClick={()=>{setDIdx(DOMANDE.length-1);setStep(1);}}>← Modifica</button>
+        <button style={btnP} onClick={()=>setStep(4)}>Scegli Dispositivo →</button>
+      </div>
+    </Lay>;
+  }
 
+  // STEP 4: DISPOSITIVO
+  if(step===4){
+    const ff=FAMIGLIE.filter(f=>f.livelli[livello]);
+    return <Lay cur={3} ap={ap}>
+      <h2 style={{color:BRAND,marginBottom:12,fontSize:19,fontWeight:900}}>Scelta del Dispositivo</h2>
+      <div style={{display:"flex",gap:8,marginBottom:14}}>{[["bino","👂👂 Binaurale"],["mono","👂 Monaurale"]].map(([u,lb])=><button key={u} onClick={()=>setUso(u)} style={{flex:1,padding:"9px 0",borderRadius:9,border:"2px solid",borderColor:uso===u?BRAND:"#ddd",background:uso===u?BRAND:"#fff",color:uso===u?"#fff":"#555",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>{lb}</button>)}</div>
+      {[{t:"🎧 RIC",ids:["moxi_s_r","moxi_s_312"]},{t:"🔊 BTE",ids:["stride_vpr","stride_vm312"]},{t:"👁️ Endoauricolare",ids:["insera_s_r","insera_s_nw"]},{t:"⚡ Instant Fit Quix",ids:["quix_r","quix_nw"]}].map(grp=>{
+        const items=ff.filter(f=>grp.ids.includes(f.id));
+        if(!items.length)return null;
+        return <div key={grp.t} style={{marginBottom:12}}>
+          <div style={{fontSize:10,fontWeight:700,color:"#888",marginBottom:6,textTransform:"uppercase"}}>{grp.t}</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            {items.map(f=>{
+              const pr=uso==="bino"?f.livelli[livello]&&f.livelli[livello].bino:f.livelli[livello]&&f.livelli[livello].mono;
+              return <Card key={f.id} sel={fam===f.id} onClick={()=>{setFam(f.id);setPromo(false);setAccSel([]);}} s={{padding:"10px 12px"}} c={<>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:17}}>{f.icona}</span>{f.ricaricabile&&<Bdg t="Ricar." col={GREEN}/>}</div>
+                <div style={{fontWeight:800,fontSize:12,marginBottom:1}}>{f.nome}</div>
+                <div style={{fontSize:10,color:"#888",marginBottom:5}}>{f.sottotipo}</div>
+                <div style={{fontWeight:800,fontSize:14,color:BRAND}}>€ {pr?pr.toLocaleString("it-IT"):"—"}</div>
+                {fam===f.id&&f.note&&<p style={{margin:"6px 0 0",fontSize:10,color:"#888",fontStyle:"italic"}}>{f.note}</p>}
+              </>}/>;
+            })}
+          </div>
+        </div>;
+      })}
+      <div style={{display:"flex",justifyContent:"space-between",marginTop:14}}>
+        <button style={btnS} onClick={()=>setStep(3)}>← Indietro</button>
+        <button style={{...btnP,opacity:fam?1:.5}} onClick={()=>fam&&setStep(5)} disabled={!fam}>Avanti →</button>
+      </div>
+    </Lay>;
+  }
+
+  // STEP 5: ACCESSORI
+  if(step===5){
+    const ad=famObj?famObj.accessori:[];
+    return <Lay cur={4} ap={ap}>
+      <h2 style={{color:BRAND,marginBottom:12,fontSize:19,fontWeight:900}}>Accessori</h2>
+      <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:12}}>
+        {ad.map(nome=>{
+          const a=ACC[nome];
+          if(nome==="Ricevitore"&&!(famObj&&famObj.ricevitore))return null;
+          const nd=nome==="Ricevitore"?(uso==="bino"?"Ricevitori":"Ricevitore"):nome;
+          const inc=a&&(a.incluso||(a.inclusoPerModello&&a.inclusoPerModello.includes(fam)));
+          const sel=accSel.includes(nome);
+          return <div key={nome} onClick={()=>!inc&&a&&a.p&&toggleAcc(nome)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 13px",borderRadius:9,border:"2px solid",borderColor:inc?"#1a9e5e":sel?BRAND:"#e0e0e0",background:inc?"#f0fdf4":sel?"#e8f7fb":"#fff",cursor:!inc&&a&&a.p?"pointer":"default"}}>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:6}}><span style={{fontWeight:600,fontSize:13}}>{nd}</span>{inc&&<span style={{background:GREEN,color:"#fff",borderRadius:20,padding:"1px 8px",fontSize:9,fontWeight:700}}>Incluso</span>}</div>
+              <div style={{fontSize:10,color:"#888"}}>{inc?"Incluso":a&&a.p?"€ "+a.p:"-"}</div>
+            </div>
+            {!inc&&a&&a.p&&<div style={{width:20,height:20,borderRadius:"50%",background:sel?BRAND:"#eee",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:800}}>{sel?"✓":"+"}</div>}
+          </div>;
+        })}
+      </div>
+      <div style={{background:"#f9f9f9",borderRadius:10,padding:"11px 14px",marginBottom:14}}>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#888",marginBottom:2}}><span>Listino</span><span>€ {fmt(pb)}</span></div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:GREEN,fontWeight:700}}><span>Promozione -{sp}%</span><span>- € {fmt(pb*(sp/100))}</span></div>
+        <div style={{borderTop:"1.5px solid #ddd",marginTop:6,paddingTop:6,display:"flex",justifyContent:"space-between"}}><span style={{fontWeight:800}}>Totale</span><span style={{fontWeight:900,color:BRAND}}>€ {fmt(tot)}</span></div>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between"}}>
+        <button style={btnS} onClick={()=>setStep(4)}>← Indietro</button>
+        <button style={btnP} onClick={()=>setStep(6)}>Vai alla Proposta →</button>
+      </div>
+    </Lay>;
+  }
+
+  // STEP 6: PROPOSTA FINALE
   const oggi=new Date().toLocaleDateString("it-IT",{day:"2-digit",month:"long",year:"numeric"});
-  const nomePaz=`${paziente.nome} ${paziente.cognome}`.trim()||"Paziente";
-  return<Layout current={5} ap={ap}>
-    {numeroPreventivo&&<div style={{background:"#f0f8fb",border:`1.5px solid ${BRAND}`,borderRadius:9,padding:"7px 14px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:12,color:"#555"}}>Preventivo n°</span><span style={{fontWeight:900,fontSize:16,color:BRAND}}>{numeroPreventivo}</span>{salvato&&<span style={{fontSize:10,background:GREEN,color:"#fff",borderRadius:20,padding:"2px 9px",fontWeight:700}}>✓ Salvato</span>}</div>}
-    <DriveBanner status={driveStatus} onLogin={handleDriveLogin}/>
-    <div style={{background:`linear-gradient(135deg,${BRAND},#0d8fad)`,borderRadius:12,padding:"14px 18px",color:"#fff",marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}><div><div style={{fontSize:9,opacity:.65,letterSpacing:1,textTransform:"uppercase",marginBottom:2}}>Otosense Srl - Percorso Riabilitativo</div><div style={{fontSize:18,fontWeight:900}}>{nomePaz}</div>{paziente.data&&<div style={{fontSize:11,opacity:.8,marginTop:1}}>Nato/a il {new Date(paziente.data).toLocaleDateString("it-IT")}</div>}</div><div style={{textAlign:"right",fontSize:11,opacity:.75}}><div>{oggi}</div><div style={{fontWeight:700}}>Valida 30 giorni</div></div></div></div>
-    <div style={{display:"flex",gap:10,alignItems:"center",padding:"9px 13px",background:livelloObj.light,borderRadius:9,marginBottom:10}}><div style={{width:34,height:34,borderRadius:8,background:livelloObj.color,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:15}}>{livelloObj.num}</div><div><div style={{fontWeight:800,fontSize:13}}>{livelloObj.label} {livelloObj.sublabel}</div><div style={{fontSize:10,color:"#666"}}>{livelloObj.ambiente}</div></div></div>
-    <div style={{border:`1.5px solid #d0e8f0`,borderRadius:10,padding:"11px 14px",marginBottom:10}}><div style={{display:"flex",gap:5,marginBottom:5,flexWrap:"wrap"}}><Badge color={livelloObj.color}>{livelloObj.label}</Badge>{famigliaObj&&famigliaObj.ricaricabile&&<Badge color={GREEN}>Ricaricabile</Badge>}<Badge color="#555">{uso==="bino"?"Binaurale":"Monaurale"}</Badge></div><div style={{fontWeight:800,fontSize:14,color:"#1a1a2e",marginBottom:2}}>{famigliaObj&&famigliaObj.nome}</div><div style={{fontSize:11,color:"#888"}}>{famigliaObj&&famigliaObj.brand} - {famigliaObj&&famigliaObj.sottotipo}</div></div>
-    {puoPromo&&<div style={{marginBottom:12}}>{!promoAttiva?<div style={{borderRadius:12,overflow:"hidden",border:"2px solid #e8a020"}}><div style={{background:"linear-gradient(135deg,#e8a020,#f0b830)",padding:"11px 16px",display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:22}}>⏰</span><div style={{flex:1}}><div style={{fontWeight:900,fontSize:13,color:"#fff"}}>Sconto se prenota oggi la prova</div></div><div style={{background:"rgba(255,255,255,.25)",borderRadius:8,padding:"4px 10px",textAlign:"center"}}><div style={{fontWeight:900,fontSize:18,color:"#fff"}}>-{scontoPromo}%</div></div></div><div style={{background:"#fffbf0",padding:"12px 16px"}}><p style={{fontSize:12,color:"#555",marginBottom:10}}>Risparmia <strong style={{color:ACCENT}}>€ {fmt(prezzoBase*(scontoPromo/100))}</strong> prenotando oggi la prova gratuita.</p><button onClick={()=>setPromo(true)} style={{width:"100%",padding:"12px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#e8a020,#f0b830)",color:"#fff",fontWeight:900,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>✅ Prenoto la prova - Attiva sconto {scontoPromo}%</button></div></div>:<div style={{borderRadius:12,border:"2px solid #1a9e5e",background:"#f0fdf4",padding:"11px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontWeight:700,color:GREEN}}>✅ Promozione -{scontoPromo}% attiva</span><button onClick={()=>setPromo(false)} style={{background:"none",border:"1px solid #ccc",borderRadius:7,padding:"4px 10px",fontSize:11,color:"#888",cursor:"pointer",fontFamily:"inherit"}}>✕</button></div>}</div>}
-    <div style={{background:"#f8f9fa",borderRadius:10,padding:"11px 14px",marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#888",marginBottom:2}}><span>Listino</span><span><s>€ {fmt(prezzoBase)}</s></span></div><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:GREEN,fontWeight:700,marginBottom:2}}><span>Promozione -{scontoPromo}%</span><span>- € {fmt(prezzoBase*(scontoPromo/100))}</span></div>{accessoriSel.map(n=><div key={n} style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"#888",marginBottom:1}}><span>{n}</span><span>€ {ACC[n]&&ACC[n].p?ACC[n].p:""}</span></div>)}<div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:BRAND,marginTop:3}}><span style={{fontStyle:"italic"}}>Percorso 15 sedute</span><span style={{fontWeight:700}}>✓ Incluso</span></div><div style={{borderTop:"1.5px solid #ddd",marginTop:7,paddingTop:7,display:"flex",justifyContent:"space-between"}}><span style={{fontWeight:700,fontSize:13}}>Totale</span><span style={{fontWeight:900,fontSize:15,color:BRAND}}>€ {fmt(totaleFinale)}</span></div></div>
-    <div style={{background:`linear-gradient(135deg,${BRAND},#0d8fad)`,borderRadius:10,padding:"13px 16px",color:"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><div><div style={{fontSize:11,opacity:.85,fontWeight:600}}>Totale Percorso Completo - IVA inclusa</div><div style={{fontSize:9,opacity:.6}}>Dispositivi + 15 sedute - Valida 30 giorni</div></div><div style={{fontSize:22,fontWeight:900}}>€ {fmt(totaleFinale)}</div></div>
+  return <Lay cur={5} ap={ap}>
+    {numPrev&&<div style={{background:"#f0f8fb",border:"1.5px solid "+BRAND,borderRadius:9,padding:"7px 14px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:12,color:"#555"}}>Preventivo n°</span><span style={{fontWeight:900,fontSize:16,color:BRAND}}>{numPrev}</span>{salvato&&<span style={{fontSize:10,background:GREEN,color:"#fff",borderRadius:20,padding:"2px 9px",fontWeight:700}}>✓ Salvato</span>}</div>}
+    <DriveBnr status={drvSt} onLogin={loginDrive}/>
+    <div style={{background:"linear-gradient(135deg,"+BRAND+",#0d8fad)",borderRadius:12,padding:"14px 18px",color:"#fff",marginBottom:12}}>
+      <div style={{fontSize:18,fontWeight:900}}>{paz.nome} {paz.cognome}</div>
+      <div style={{fontSize:11,opacity:.8}}>{oggi} · Valida 30 giorni</div>
+    </div>
+    <div style={{display:"flex",gap:10,alignItems:"center",padding:"9px 13px",background:lv&&lv.light,borderRadius:9,marginBottom:10}}>
+      <div style={{width:34,height:34,borderRadius:8,background:lv&&lv.color,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:15}}>{lv&&lv.num}</div>
+      <div><div style={{fontWeight:800,fontSize:13}}>{lv&&lv.label} {lv&&lv.sublabel}</div><div style={{fontSize:10,color:"#666"}}>{lv&&lv.ambiente}</div></div>
+    </div>
+    <div style={{border:"1.5px solid #d0e8f0",borderRadius:10,padding:"11px 14px",marginBottom:10}}>
+      <div style={{fontWeight:800,fontSize:14,marginBottom:2}}>{famObj&&famObj.nome}</div>
+      <div style={{fontSize:11,color:"#888"}}>{famObj&&famObj.brand} · {famObj&&famObj.sottotipo} · {uso==="bino"?"Binaurale":"Monaurale"}</div>
+    </div>
+    {sp>0&&<div style={{marginBottom:12}}>{!promo?
+      <div style={{borderRadius:12,overflow:"hidden",border:"2px solid #e8a020"}}>
+        <div style={{background:"linear-gradient(135deg,#e8a020,#f0b830)",padding:"11px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{color:"#fff",fontWeight:900,fontSize:13}}>⏰ Sconto se prenota oggi — -{sp}%</div>
+          <div style={{background:"rgba(255,255,255,.25)",borderRadius:8,padding:"4px 10px",color:"#fff",fontWeight:900,fontSize:18}}>-{sp}%</div>
+        </div>
+        <div style={{background:"#fffbf0",padding:"12px 16px"}}>
+          <p style={{fontSize:12,color:"#555",marginBottom:10}}>Risparmia <strong style={{color:ACCENT}}>€ {fmt(pb*(sp/100))}</strong> prenotando oggi la prova gratuita.</p>
+          <button onClick={()=>setPromo(true)} style={{width:"100%",padding:"12px",borderRadius:9,border:"none",background:"linear-gradient(135deg,#e8a020,#f0b830)",color:"#fff",fontWeight:900,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>✅ Attiva sconto {sp}%</button>
+        </div>
+      </div>:
+      <div style={{borderRadius:12,border:"2px solid #1a9e5e",background:"#f0fdf4",padding:"11px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontWeight:700,color:GREEN}}>✅ Promozione -{sp}% attiva · Risparmio € {fmt(pb*(sp/100))}</span>
+        <button onClick={()=>setPromo(false)} style={{background:"none",border:"1px solid #ccc",borderRadius:7,padding:"4px 10px",fontSize:11,color:"#888",cursor:"pointer",fontFamily:"inherit"}}>✕</button>
+      </div>}
+    </div>}
+    <div style={{background:"#f8f9fa",borderRadius:10,padding:"11px 14px",marginBottom:10}}>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#888",marginBottom:2}}><span>Listino</span><span><s>€ {fmt(pb)}</s></span></div>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:GREEN,fontWeight:700,marginBottom:2}}><span>Promozione -{sp}%</span><span>- € {fmt(pb*(sp/100))}</span></div>
+      {accSel.map(n=><div key={n} style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"#888"}}><span>{n}</span><span>€ {ACC[n]&&ACC[n].p?ACC[n].p:""}</span></div>)}
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:BRAND,marginTop:3}}><span style={{fontStyle:"italic"}}>Percorso 15 sedute</span><span style={{fontWeight:700}}>Incluso</span></div>
+      <div style={{borderTop:"1.5px solid #ddd",marginTop:7,paddingTop:7,display:"flex",justifyContent:"space-between"}}><span style={{fontWeight:700,fontSize:13}}>Totale</span><span style={{fontWeight:900,fontSize:15,color:BRAND}}>€ {fmt(tot)}</span></div>
+    </div>
+    <div style={{background:"linear-gradient(135deg,"+BRAND+",#0d8fad)",borderRadius:10,padding:"13px 16px",color:"#fff",display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+      <div><div style={{fontSize:11,fontWeight:600}}>Totale Percorso Completo · IVA inclusa</div><div style={{fontSize:9,opacity:.6}}>Dispositivi + 15 sedute · Valida 30 giorni</div></div>
+      <div style={{fontSize:22,fontWeight:900}}>€ {fmt(tot)}</div>
+    </div>
     <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
       <button style={btnS} onClick={()=>setStep(5)}>← Modifica</button>
-      <button onClick={handleStampa} style={{...btnP,background:RED,flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:7,fontSize:13}}>
-        📄 Genera PDF {driveStatus==="ok"&&<span style={{fontSize:10,background:"rgba(255,255,255,.2)",borderRadius:20,padding:"1px 7px"}}>+ ☁️ Drive</span>}
+      <button onClick={handlePDF} style={{...btnP,background:RED,flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:7,fontSize:13}}>
+        📄 Genera PDF {drvSt==="ok"&&<span style={{fontSize:10,background:"rgba(255,255,255,.2)",borderRadius:20,padding:"1px 7px"}}>+ ☁️ Drive</span>}
       </button>
       <button style={{...btnP,background:GREEN}} onClick={reset}>+ Nuovo</button>
     </div>
-    <p style={{fontSize:10,color:"#aaa",marginTop:8,textAlign:"center"}}>Il PDF viene scaricato sul PC e salvato su Drive</p>
-  </Layout>;
+    <p style={{fontSize:10,color:"#aaa",marginTop:8,textAlign:"center"}}>Il PDF viene scaricato sul PC e salvato su Google Drive</p>
+  </Lay>;
 }
 
-const root=ReactDOM.createRoot(document.getElementById("root"));
-root.render(React.createElement(App));
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
 </script>
 </body>
 </html>
