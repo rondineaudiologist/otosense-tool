@@ -63,18 +63,20 @@ const DOMANDE=[
     {label:"Alta qualita', Bluetooth avanzato, streaming",score:4},
     {label:"Il massimo disponibile: AI, personalizzazione totale",score:5},
   ]},
-  {id:"budget",cat:"Investimento",testo:"Qual e' la fascia di investimento che ha in mente?",opzioni:[
-    {label:"Fino a 1.500 euro per apparecchio",score:1},
-    {label:"Tra 1.500 e 3.000 euro per apparecchio",score:2},
-    {label:"Tra 3.000 e 5.000 euro per apparecchio",score:3},
-    {label:"Tra 5.000 e 7.500 euro per apparecchio",score:4},
-    {label:"Oltre 7.500 euro per apparecchio",score:5},
+  {id:"budget",cat:"Il suo investimento nel benessere uditivo",testo:"Quanto vuole investire nella sua qualita' di ascolto nei prossimi 5 anni?",opzioni:[
+    {label:"🟢  Soluzione Base — primo passo verso un ascolto migliore  (da € 1.600 per apparecchio)",score:1},
+    {label:"🔵  Soluzione Entry — tecnologia di ultima generazione, uso quotidiano semplice  (da € 2.300 per apparecchio)",score:2},
+    {label:"🔷  Soluzione Essenziale — ascolto confortevole in ogni situazione della vita  (da € 3.050 per apparecchio)",score:3},
+    {label:"🟣  Soluzione Standard — prestazioni elevate, adattamento automatico avanzato  (da € 3.600 per apparecchio)",score:4},
+    {label:"🌟  Soluzione Avanzata — massima chiarezza anche negli ambienti piu' difficili  (da € 4.150 per apparecchio)",score:4},
+    {label:"⭐  Soluzione Excellence — il meglio disponibile oggi, senza nessun compromesso  (da € 4.900 per apparecchio)",score:5},
   ]},
 ];
 
 const PESI={env:1.8,rumore:1.9,social:1.4,ascolto:2.0,aspettativa:1.3,budget:1.2};
 
 const MOTIVAZIONI={
+  ATIVO:"Profilo con ambienti molto tranquilli e necessita' di ascolto semplice. La linea ATIVO e' la soluzione ideale per chi si avvicina per la prima volta al mondo degli apparecchi acustici.",
   BASE:"Profilo con ambienti molto silenziosi e vita sociale minima. Il livello Entry e' ideale per un primo approccio all'amplificazione in contesti semplici.",
   ESSENZIALE:"Profilo con ambienti semplici e vita sociale limitata. Il livello Essenziale garantisce un ascolto confortevole nelle situazioni quotidiane.",
   STANDARD:"Uso quotidiano in ambienti prevedibili. Il livello Standard offre la tecnologia giusta per una vita attiva e confortevole.",
@@ -83,7 +85,7 @@ const MOTIVAZIONI={
 };
 
 const LIVELLI=[
-  {id:"BASE",label:"ENTRY",sublabel:"Essential Base",num:"1",color:"#7ecde0",light:"#f0fafd",tagline:"La soluzione essenziale per sentire meglio ogni giorno",vantaggi:["Conversazioni chiare","Ambienti tranquilli","Bluetooth base","Semplice da usare"],ambiente:"Casa, TV, conversazioni in silenzio"},
+  {id:"BASE",label:"BASE",sublabel:"Essential Base",num:"1",color:"#7ecde0",light:"#f0fafd",tagline:"La soluzione essenziale per sentire meglio ogni giorno",vantaggi:["Conversazioni chiare","Ambienti tranquilli","Bluetooth base","Semplice da usare"],ambiente:"Casa, TV, conversazioni in silenzio"},
   {id:"ESSENZIALE",label:"ESSENZIALE",sublabel:"Essential",num:"3",color:"#4db8d4",light:"#e8f7fb",tagline:"Soluzione pratica per conversazioni di tutti i giorni",vantaggi:["Conversazioni facili","Rumore leggero gestito","Funzionale","Bluetooth streaming"],ambiente:"Casa, conversazioni individuali"},
   {id:"STANDARD",label:"STANDARD",sublabel:"Standard",num:"5",color:"#2fa0c0",light:"#ddf3f9",tagline:"Affidabile ogni giorno per l'uso quotidiano",vantaggi:["Parlato chiaro","Casa e lavoro","Adattamento auto","Affidabile"],ambiente:"Uso quotidiano, rumore occasionale"},
   {id:"AVANZATA",label:"AVANZATO",sublabel:"Advanced",num:"7",color:"#1a88a8",light:"#cdeef7",tagline:"Audio avanzato per la vita attiva",vantaggi:["Gruppi rumorosi","Parlato nel rumore","AI separazione","Vita sociale"],ambiente:"Gruppi, ristoranti, riunioni"},
@@ -91,14 +93,18 @@ const LIVELLI=[
 ];
 
 const FAMIGLIE=[
+  {id:"ativo_ric",nome:"ATIVO R.I.C. 312",brand:"Unitron ATIVO",sottotipo:"Pila 312 - RIC",icona:"🎧",ricaricabile:false,desc:"RIC entry level a pila 312. Soluzione accessibile e affidabile.",livelli:{ATIVO:{bino:3600,mono:1800}},accessori:["TV Connector","Remote Control","Partner MIC","Ricevitore"],ricevitore:true},
+  {id:"ativo_bte_m",nome:"ATIVO M BTE 312",brand:"Unitron ATIVO",sottotipo:"Pila 312 - BTE Mini",icona:"🔊",ricaricabile:false,desc:"BTE mini a pila 312. Compatto e robusto.",livelli:{ATIVO:{bino:3200,mono:1600}},accessori:["TV Connector","Remote Control","Partner MIC"]},
+  {id:"ativo_bte_sp",nome:"ATIVO SP BTE 13",brand:"Unitron ATIVO",sottotipo:"Pila 13 - BTE SP",icona:"🔊",ricaricabile:false,desc:"BTE SP a pila 13. Alta potenza per perdite severe.",livelli:{ATIVO:{bino:3200,mono:1600}},accessori:["TV Connector","Remote Control","Partner MIC"]},
+  {id:"ativo_bte_up",nome:"ATIVO UP BTE 675",brand:"Unitron ATIVO",sottotipo:"Pila 675 - BTE UP",icona:"🔊",ricaricabile:false,desc:"BTE UP a pila 675. Massima potenza per perdite profonde.",livelli:{ATIVO:{bino:3200,mono:1600}},accessori:["TV Connector","Remote Control","Partner MIC"]},
   {id:"moxi_s_r",nome:"MOXI S-R",brand:"Unitron MOXI",sottotipo:"Ricaricabile - RIC",icona:"🎧",ricaricabile:true,desc:"RIC mini ricaricabile. Massima discrezione, nessuna pila.",livelli:{BASE:{bino:4600,mono:2300},ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600},PREMIUM:{bino:9800,mono:4900}},accessori:["Charger MOXI Smile","TV Connector","Remote Control","Partner MIC","Ricevitore"],ricevitore:true},
   {id:"moxi_s_312",nome:"MOXI S Pila 312",brand:"Unitron MOXI Vivante",sottotipo:"Pila 312 - RIC",icona:"🎧",ricaricabile:false,desc:"RIC a pila 312. Lunga autonomia.",livelli:{BASE:{bino:4300,mono:2150},ESSENZIALE:{bino:4300,mono:2150},STANDARD:{bino:5700,mono:2850},AVANZATA:{bino:6760,mono:3380},PREMIUM:{bino:8460,mono:4230}},accessori:["TV Connector","Remote Control","Partner MIC","Ricevitore"],ricevitore:true},
   {id:"stride_vpr",nome:"STRIDE V-PR",brand:"Unitron STRIDE",sottotipo:"Ricaricabile - BTE",icona:"🔋",ricaricabile:true,desc:"BTE ricaricabile. Potenza elevata.",livelli:{BASE:{bino:4600,mono:2300},ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600},PREMIUM:{bino:9800,mono:4900}},accessori:["TV Connector","Remote Control","Partner MIC"]},
   {id:"stride_vm312",nome:"STRIDE V-M 312",brand:"Unitron STRIDE Vivante",sottotipo:"Pila 312 - BTE",icona:"🎧",ricaricabile:false,desc:"BTE tradizionale a pila 312.",livelli:{BASE:{bino:4300,mono:2150},ESSENZIALE:{bino:4300,mono:2150},STANDARD:{bino:5700,mono:2850},AVANZATA:{bino:6760,mono:3380},PREMIUM:{bino:8460,mono:4230}},accessori:["TV Connector","Remote Control","Partner MIC"]},
   {id:"insera_s_r",nome:"Insera S-R",brand:"Unitron Insera",sottotipo:"Ricaricabile - Su impronta",icona:"👁️",ricaricabile:true,desc:"Endoauricolare su misura ricaricabile.",note:"Gusci: ITC - Semi-conca.",livelli:{BASE:{bino:4700,mono:2350},ESSENZIALE:{bino:4700,mono:2350},STANDARD:{bino:6200,mono:3100},AVANZATA:{bino:7300,mono:3650},PREMIUM:{bino:9900,mono:4950}},accessori:["Remote Control IIC","TV Connector"]},
   {id:"insera_s_nw",nome:"Insera S Pila",brand:"Unitron Insera",sottotipo:"Pila 10 - Su impronta",icona:"👁️",ricaricabile:false,desc:"Endoauricolare su misura a pila.",note:"Gusci: IIC - CIC - ITC - Semiconca.",livelli:{BASE:{bino:4700,mono:2350},ESSENZIALE:{bino:4700,mono:2350},STANDARD:{bino:6200,mono:3100},AVANZATA:{bino:7300,mono:3650},PREMIUM:{bino:9900,mono:4950}},accessori:["Remote Control IIC","TV Connector"]},
-  {id:"quix_r",nome:"Quix Ricaricabile",brand:"Unitron Quix",sottotipo:"Ricaricabile - Instant Fit",icona:"⚡",ricaricabile:true,desc:"Instant Fit ricaricabile, senza impronta.",note:"Smile 3, 5 e 7.",livelli:{ESSENZIALE:{bino:6100,mono:3050},STANDARD:{bino:7200,mono:3600},AVANZATA:{bino:8300,mono:4150}},accessori:["TV Connector","Remote Control IIC"]},
-  {id:"quix_nw",nome:"Quix Pila",brand:"Unitron Quix",sottotipo:"Pila - Instant Fit",icona:"⚡",ricaricabile:false,desc:"Instant Fit a pila, senza impronta.",note:"Smile 3, 5 e 7.",livelli:{ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600}},accessori:["TV Connector","Remote Control IIC"]},
+  {id:"quix_r",nome:"Quix Ricaricabile",brand:"Unitron Quix",sottotipo:"Ricaricabile - Instant Fit",icona:"⚡",ricaricabile:true,desc:"Instant Fit ricaricabile, senza impronta.",note:"Smile 3, 5 e 7.",livelli:{ESSENZIALE:{bino:6100,mono:3050},STANDARD:{bino:7200,mono:3600},AVANZATA:{bino:8300,mono:4150}},accessori:["Charger MOXI Smile"]},
+  {id:"quix_nw",nome:"Quix Pila",brand:"Unitron Quix",sottotipo:"Pila - Instant Fit",icona:"⚡",ricaricabile:false,desc:"Instant Fit a pila, senza impronta.",note:"Smile 3, 5 e 7.",livelli:{ESSENZIALE:{bino:4600,mono:2300},STANDARD:{bino:6100,mono:3050},AVANZATA:{bino:7200,mono:3600}},accessori:[]},
 ];
 
 const ACC={
@@ -110,9 +116,8 @@ const ACC={
   "Remote Control IIC":{p:null,incluso:false},
 };
 
-const PROMO_MAP={BASE:0,ESSENZIALE:8,STANDARD:10,AVANZATA:15,PREMIUM:20};
+const PROMO_MAP={ATIVO:5,BASE:0,ESSENZIALE:8,STANDARD:10,AVANZATA:15,PREMIUM:20};
 
-// Storage
 const ST={
   get:k=>{try{const v=localStorage.getItem(k);return v?{value:v}:null;}catch{return null;}},
   set:(k,v)=>{try{localStorage.setItem(k,v);}catch{}},
@@ -123,7 +128,7 @@ function calcolaLivello(r){
   let tp=0,ts=0;
   for(const[id,s]of Object.entries(r)){const p=PESI[id]||1;ts+=s*p;tp+=p;}
   const m=ts/tp;
-  if(m<=1.4)return"BASE";if(m<=2.0)return"ESSENZIALE";if(m<=3.0)return"STANDARD";if(m<=4.0)return"AVANZATA";return"PREMIUM";
+  if(m<=1.0)return"ATIVO";if(m<=1.6)return"BASE";if(m<=2.4)return"ESSENZIALE";if(m<=3.2)return"STANDARD";if(m<=4.0)return"AVANZATA";return"PREMIUM";
 }
 
 function getNumero(ini){
@@ -142,7 +147,6 @@ function caricaArchivio(){
 function fmt(n){return n.toLocaleString("it-IT",{minimumFractionDigits:2});}
 function hexRgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
 
-// Drive upload
 async function driveUpload(token,name,bytes){
   const meta={name,parents:[DRIVE_FOLDER_ID],mimeType:"application/pdf"};
   const form=new FormData();
@@ -153,7 +157,6 @@ async function driveUpload(token,name,bytes){
   });
 }
 
-// Genera PDF
 function buildPDF(rec){
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
@@ -163,7 +166,6 @@ function buildPDF(rec){
   const lc=hexRgb(lv.color);
   let y=0;
 
-  // HEADER
   doc.setFillColor(10,110,138);doc.rect(0,0,W,34,"F");
   doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(180,225,240);
   doc.text("PREVENTIVO - PERCORSO RIABILITATIVO AUDIOLOGICO",M,9);
@@ -190,7 +192,6 @@ function buildPDF(rec){
     doc.roundedRect(x,by,w,h,2,2,sr!=null?"FD":"F");
   };
 
-  // ROW1: PAZIENTE | LIVELLO
   const cw=(CW-5)/2,c1=M,c2=M+cw+5;
   sez("Paziente");
   box(c1,y-2,cw,20,240,248,251,200,228,237);
@@ -204,7 +205,6 @@ function buildPDF(rec){
   doc.text(doc.splitTextToSize(lv.tagline,cw-8),c2+4,y+13);
   y+=27;
 
-  // ROW2: DISPOSITIVO | PERCORSO
   sez("Dispositivo Selezionato");
   box(c1,y-2,cw,26,248,252,254,200,228,237);
   doc.setFontSize(10);doc.setFont("helvetica","bold");doc.setTextColor(26,26,46);
@@ -233,7 +233,6 @@ function buildPDF(rec){
   doc.text("Follow-up",c2+hw+16,y+16);doc.text("sessioni 5-15",c2+hw+16,y+20);
   y+=33;
 
-  // PROFILO CLINICO
   sez("Profilo Clinico - Risposte Paziente");
   DOMANDE.forEach((d,i)=>{
     const s=risposte[d.id];if(!s)return;
@@ -248,7 +247,6 @@ function buildPDF(rec){
   });
   y+=4;
 
-  // MOTIVAZIONE
   sez("Motivazione Clinica");
   const mt=doc.splitTextToSize(MOTIVAZIONI[rec.livello]||"",CW-8);
   const mh=mt.length*4.5+8;
@@ -257,7 +255,6 @@ function buildPDF(rec){
   doc.text(mt,M+4,y+4);
   y+=mh+7;
 
-  // RIEPILOGO
   sez("Riepilogo Economico");
   const er=(lb,vl,lc2,vc,bold,bg)=>{
     if(bg){doc.setFillColor(...bg);doc.rect(M,y-3,CW,7,"F");}
@@ -272,7 +269,6 @@ function buildPDF(rec){
   er("Percorso riabilitativo completo - 15 sedute","Incluso",[10,110,138],[26,158,94],true,[235,248,252]);
   y+=3;
 
-  // TOTALE
   doc.setFillColor(10,110,138);doc.roundedRect(M,y,CW,20,2,2,"F");
   doc.setFontSize(10);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
   doc.text("TOTALE PERCORSO COMPLETO - IVA inclusa",M+5,y+8);
@@ -282,7 +278,6 @@ function buildPDF(rec){
   doc.text("€ "+fmt(tot),W-M-4,y+14,{align:"right"});
   y+=26;
 
-  // VANTAGGI
   let bx=M;
   (lv.vantaggi||[]).forEach(v=>{
     const tw=doc.getTextWidth("+ "+v)+5;
@@ -292,7 +287,6 @@ function buildPDF(rec){
     doc.text("+ "+v,bx+2.5,y+1);bx+=tw+2;
   });
 
-  // FOOTER
   doc.setDrawColor(220,220,220);doc.setLineWidth(0.3);doc.line(M,PH-10,W-M,PH-10);
   doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(160,160,160);
   doc.text("Otosense Srl - Studio di Riabilitazione Audiologica - Unitron / Sonova Group",M,PH-6);
@@ -400,8 +394,8 @@ function App(){
 
   const loginDrive=()=>{setDrvSt("loading");if(tokRef.current)tokRef.current.requestAccessToken();else setDrvSt("error");};
 
-  const lv=LIVELLI.find(l=>l.id===livello);
-  const famObj=FAMIGLIE.find(f=>f.id===fam);
+  const lv=LIVELLI.find(l=>l.id===livello)||LIVELLI[0];
+  const famObj=FAMIGLIE.find(f=>f.id===fam)||null;
   const pb=famObj&&livello?(uso==="bino"?famObj.livelli[livello]&&famObj.livelli[livello].bino:famObj.livelli[livello]&&famObj.livelli[livello].mono)||0:0;
   const sp=PROMO_MAP[livello]||0;
   const totAcc=accSel.reduce((a,n)=>a+(ACC[n]&&ACC[n].p?ACC[n].p:0),0);
@@ -425,13 +419,11 @@ function App(){
     try{
       const doc=buildPDF(rec);
       const blob=doc.output("blob");
-      // Scarica localmente
       const u=URL.createObjectURL(blob);
       const a=document.createElement("a");
       a.href=u;a.download="Preventivo_"+num+".pdf";
       document.body.appendChild(a);a.click();document.body.removeChild(a);
       setTimeout(()=>URL.revokeObjectURL(u),5000);
-      // Carica su Drive
       if(drvTok){
         const bytes=doc.output("arraybuffer");
         await driveUpload(drvTok,"Preventivo_"+num+".pdf",bytes);
@@ -439,7 +431,6 @@ function App(){
     }catch(e){console.error("PDF error",e);}
   };
 
-  // LOGIN
   if(screen==="login") return <Lay cur={null} ap={null}>
     <div style={{textAlign:"center",marginBottom:28}}>
       <div style={{fontSize:48,marginBottom:10}}>👂</div>
@@ -460,7 +451,6 @@ function App(){
 
   if(screen==="archivio") return <Archivio ap={ap} onBack={()=>setScreen(ap?"wf":"login")}/>;
 
-  // STEP 0: PAZIENTE
   if(step===0) return <Lay cur={0} ap={ap}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
       <h2 style={{color:BRAND,fontSize:19,fontWeight:900}}>Dati del Paziente</h2>
@@ -478,7 +468,6 @@ function App(){
     <div style={{marginTop:26,display:"flex",justifyContent:"flex-end"}}><button style={btnP} onClick={()=>setStep(1)}>Avvia Valutazione →</button></div>
   </Lay>;
 
-  // STEP 1: QUESTIONARIO
   if(step===1){
     const d=DOMANDE[dIdx];
     return <Lay cur={1} ap={ap}>
@@ -499,9 +488,8 @@ function App(){
     </Lay>;
   }
 
-  // STEP 3: RISULTATO
   if(step===3){
-    const lObj=LIVELLI.find(l=>l.id===livello);
+    const lObj=LIVELLI.find(l=>l.id===livello)||LIVELLI[0];
     return <Lay cur={2} ap={ap}>
       <div style={{textAlign:"center",marginBottom:12}}><h2 style={{fontSize:20,fontWeight:900}}>🤖 Livello Raccomandato</h2></div>
       <div style={{background:lObj.color,borderRadius:14,padding:"16px 20px",color:"#fff",marginBottom:14,textAlign:"center"}}>
@@ -523,13 +511,13 @@ function App(){
     </Lay>;
   }
 
-  // STEP 4: DISPOSITIVO
   if(step===4){
     const ff=FAMIGLIE.filter(f=>f.livelli[livello]);
     return <Lay cur={3} ap={ap}>
       <h2 style={{color:BRAND,marginBottom:12,fontSize:19,fontWeight:900}}>Scelta del Dispositivo</h2>
       <div style={{display:"flex",gap:8,marginBottom:14}}>{[["bino","👂👂 Binaurale"],["mono","👂 Monaurale"]].map(([u,lb])=><button key={u} onClick={()=>setUso(u)} style={{flex:1,padding:"9px 0",borderRadius:9,border:"2px solid",borderColor:uso===u?BRAND:"#ddd",background:uso===u?BRAND:"#fff",color:uso===u?"#fff":"#555",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>{lb}</button>)}</div>
-      {[{t:"🎧 RIC",ids:["moxi_s_r","moxi_s_312"]},{t:"🔊 BTE",ids:["stride_vpr","stride_vm312"]},{t:"👁️ Endoauricolare",ids:["insera_s_r","insera_s_nw"]},{t:"⚡ Instant Fit Quix",ids:["quix_r","quix_nw"]}].map(grp=>{
+      {[      {t:"🔊 ATIVO — Linea Base",ids:["ativo_ric","ativo_bte_m","ativo_bte_sp","ativo_bte_up"]},
+      {t:"🎧 RIC",ids:["moxi_s_r","moxi_s_312"]},{t:"🔊 BTE",ids:["stride_vpr","stride_vm312"]},{t:"👁️ Endoauricolare",ids:["insera_s_r","insera_s_nw"]},{t:"⚡ Instant Fit Quix",ids:["quix_r","quix_nw"]}].map(grp=>{
         const items=ff.filter(f=>grp.ids.includes(f.id));
         if(!items.length)return null;
         return <div key={grp.t} style={{marginBottom:12}}>
@@ -555,7 +543,6 @@ function App(){
     </Lay>;
   }
 
-  // STEP 5: ACCESSORI
   if(step===5){
     const ad=famObj?famObj.accessori:[];
     return <Lay cur={4} ap={ap}>
@@ -588,7 +575,6 @@ function App(){
     </Lay>;
   }
 
-  // STEP 6: PROPOSTA FINALE
   const oggi=new Date().toLocaleDateString("it-IT",{day:"2-digit",month:"long",year:"numeric"});
   return <Lay cur={5} ap={ap}>
     {numPrev&&<div style={{background:"#f0f8fb",border:"1.5px solid "+BRAND,borderRadius:9,padding:"7px 14px",marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:12,color:"#555"}}>Preventivo n°</span><span style={{fontWeight:900,fontSize:16,color:BRAND}}>{numPrev}</span>{salvato&&<span style={{fontSize:10,background:GREEN,color:"#fff",borderRadius:20,padding:"2px 9px",fontWeight:700}}>✓ Salvato</span>}</div>}
