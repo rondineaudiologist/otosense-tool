@@ -16,6 +16,8 @@
 
 <!-- DATI E COSTANTI -->
 <script id="data-layer">
+const LOGO_URL="https://raw.githubusercontent.com/rondineaudiologist/otosense-tool/main/Logo%20Otosense%20.png";
+
 const GOOGLE_CLIENT_ID="352604843284-jg5ui09ul5gkgcorphcdrjjeq80k9fmt.apps.googleusercontent.com";
 const DRIVE_FOLDER_ID="1B8IXPAFma3UjyzBNhvmeZuPUy5u1P0r0";
 const DRIVE_SCOPE="https://www.googleapis.com/auth/drive.file";
@@ -166,13 +168,14 @@ function buildPDF(rec){
   const lc=hexRgb(lv.color);
   let y=0;
 
+  // HEADER PDF
   doc.setFillColor(10,110,138);doc.rect(0,0,W,34,"F");
+  try{doc.addImage(LOGO_URL,"PNG",M,5,55,22);}catch(_){
+    doc.setFontSize(19);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
+    doc.text("Otosense Srl",M,19);
+  }
   doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(180,225,240);
-  doc.text("PREVENTIVO - PERCORSO RIABILITATIVO AUDIOLOGICO",M,9);
-  doc.setFontSize(19);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
-  doc.text("Otosense Srl",M,19);
-  doc.setFontSize(7);doc.setFont("helvetica","normal");doc.setTextColor(180,225,240);
-  doc.text("Studio di Riabilitazione Audiologica - Dispositivi Unitron / Sonova Group",M,25);
+  doc.text("Studio di Riabilitazione Audiologica - Dispositivi Unitron / Sonova Group",M,30);
   doc.setFontSize(16);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
   doc.text(numero,W-M,17,{align:"right"});
   doc.setFontSize(8);doc.setFont("helvetica","normal");doc.setTextColor(180,225,240);
@@ -314,9 +317,8 @@ function StepBar({cur}){
 }
 
 function Hdr({ap}){
-  return <div style={{background:BRAND,padding:"12px 20px",display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
-    <div style={{width:36,height:36,borderRadius:10,background:"rgba(255,255,255,.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👂</div>
-    <div><div style={{color:"#fff",fontWeight:900,fontSize:14}}>Otosense Srl</div><div style={{color:"rgba(255,255,255,.6)",fontSize:10}}>Studio di Riabilitazione Audiologica</div></div>
+  return <div style={{background:BRAND,padding:"10px 20px",display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+    <img src={LOGO_URL} alt="Otosense" style={{height:38,objectFit:"contain",filter:"brightness(0) invert(1)"}}/>
     {ap&&<div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}><div style={{width:32,height:32,borderRadius:"50%",background:ap.colore,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:13}}>{ap.iniziali}</div><div style={{textAlign:"right"}}><div style={{color:"#fff",fontSize:12,fontWeight:700}}>{ap.nome}</div><div style={{color:"rgba(255,255,255,.55)",fontSize:9}}>Audioprotesista</div></div></div>}
   </div>;
 }
