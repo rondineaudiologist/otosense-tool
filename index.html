@@ -16,7 +16,8 @@
 
 <!-- DATI E COSTANTI -->
 <script id="data-layer">
-const LOGO_URL="https://raw.githubusercontent.com/rondineaudiologist/otosense-tool/main/Logo%20Otosense%20.png";
+const LOGO_OTOSENSE="https://raw.githubusercontent.com/rondineaudiologist/otosense-tool/main/logo-otosense.png";
+const LOGO_SENTIAMOCI="https://raw.githubusercontent.com/rondineaudiologist/otosense-tool/main/sentiamoci-otosense.png";
 
 const GOOGLE_CLIENT_ID="352604843284-jg5ui09ul5gkgcorphcdrjjeq80k9fmt.apps.googleusercontent.com";
 const DRIVE_FOLDER_ID="1B8IXPAFma3UjyzBNhvmeZuPUy5u1P0r0";
@@ -170,7 +171,7 @@ function buildPDF(rec){
 
   // HEADER PDF
   doc.setFillColor(10,110,138);doc.rect(0,0,W,34,"F");
-  try{doc.addImage(LOGO_URL,"PNG",M,5,55,22);}catch(_){
+  try{doc.addImage(LOGO_OTOSENSE,"PNG",M,5,55,22);}catch(_){
     doc.setFontSize(19);doc.setFont("helvetica","bold");doc.setTextColor(255,255,255);
     doc.text("Otosense Srl",M,19);
   }
@@ -318,7 +319,7 @@ function StepBar({cur}){
 
 function Hdr({ap}){
   return <div style={{background:BRAND,padding:"10px 20px",display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
-    <img src={LOGO_URL} alt="Otosense" style={{height:38,objectFit:"contain",filter:"brightness(0) invert(1)"}}/>
+    <img src={LOGO_SENTIAMOCI} alt="Sentiamoci in Salute" style={{height:40,objectFit:"contain"}}/>
     {ap&&<div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}><div style={{width:32,height:32,borderRadius:"50%",background:ap.colore,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:13}}>{ap.iniziali}</div><div style={{textAlign:"right"}}><div style={{color:"#fff",fontSize:12,fontWeight:700}}>{ap.nome}</div><div style={{color:"rgba(255,255,255,.55)",fontSize:9}}>Audioprotesista</div></div></div>}
   </div>;
 }
@@ -435,8 +436,7 @@ function App(){
 
   if(screen==="login") return <Lay cur={null} ap={null}>
     <div style={{textAlign:"center",marginBottom:28}}>
-      <div style={{fontSize:48,marginBottom:10}}>👂</div>
-      <h2 style={{color:BRAND,fontSize:22,fontWeight:900,marginBottom:6}}>Otosense Srl</h2>
+      <img src={LOGO_OTOSENSE} alt="Otosense" style={{height:80,objectFit:"contain",marginBottom:16}}/>
       <p style={{color:"#666",fontSize:13}}>Seleziona il tuo nome per iniziare</p>
     </div>
     <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
